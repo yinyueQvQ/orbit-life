@@ -1,0 +1,5 @@
+import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+export const habits = sqliteTable('habits', { id:text('id').primaryKey(), owner:text('owner').notNull(), name:text('name').notNull(), category:text('category').notNull(), icon:text('icon').notNull(), goal:text('goal').notNull(), created:text('created').notNull() });
+export const checks = sqliteTable('checks', { id:text('id').primaryKey(), owner:text('owner').notNull(), habit:text('habit').notNull(), date:text('date').notNull() });
+export const transactions = sqliteTable('transactions', { id:text('id').primaryKey(), owner:text('owner').notNull(), amount:integer('amount').notNull(), kind:text('kind').notNull(), category:text('category').notNull(), note:text('note').notNull(), date:text('date').notNull() });
+export const profiles = sqliteTable('profiles', { owner:text('owner').primaryKey(), budget:integer('budget').notNull().default(300000), petName:text('pet_name').notNull().default('团团'), feeds:integer('feeds').notNull().default(0), focus:integer('focus').notNull().default(0) });
