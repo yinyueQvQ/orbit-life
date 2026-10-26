@@ -1,0 +1,2 @@
+'use client';
+export default function MobileBar(){return <div className="mobile-bar"><span>✦ 手机本地空间</span><button onClick={()=>(window as any).OrbitNative.configure()}>AI 设置</button><button onClick={()=>(window as any).OrbitMobile.backup()}>备份</button><button onClick={()=>{if(window.confirm('恢复备份会替换当前手机记录，请先备份。确定继续？'))void (window as any).OrbitMobile.restore().catch((e:Error)=>window.alert(e.message));}}>恢复</button></div>}

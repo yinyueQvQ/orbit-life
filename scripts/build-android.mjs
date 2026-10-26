@@ -1,0 +1,34 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
+const root=fileURLToPath(new URL('../',import.meta.url));
+const local=path.join(process.env.LOCALAPPDATA||path.join(process.env.USERPROFILE,'AppData/Local'),'Orbit');
+const sdk=process.env.ORBIT_ANDROID_SDK||path.join(local,'android-sdk');
+const tools=path.join(sdk,'build-tools'),platform=path.join(sdk,'platform/android.jar');
+const javaHome=process.env.JAVA_HOME||'C:/Program Files/Java/jdk-21';
+const exe=name=>path.join(javaHome,'bin',name+'.exe');
+const work=path.resolve(root,'../work/orbit-android'),release=path.join(root,'release');
+for(const d of [work,release,path.join(work,'classes'),path.join(work,'generated'),path.join(work,'dex'),path.join(work,'assets/www')])fs.mkdirSync(d,{recursive:true});
+function run(command,args,extra={}){const r=spawnSync(command,args,{cwd:root,stdio:'inherit',windowsHide:true,...extra});if(r.status!==0)throw Error('Build step failed: '+path.basename(command));}
+run(process.execPath,[path.join(root,'node_modules/vite/bin/vite.js'),'build','--config','vite.local.config.ts']);
+fs.cpSync(path.join(root,'dist-local'),path.join(work,'assets/www'),{recursive:true});
+run(path.join(tools,'aapt2.exe'),['compile','--dir',path.join(root,'android/res'),'-o',path.join(work,'compiled.zip')]);
+const unsigned=path.join(work,'unsigned.apk');
+run(path.join(tools,'aapt2.exe'),['link','-o',unsigned,'-I',platform,'--manifest',path.join(root,'android/AndroidManifest.xml'),'--java',path.join(work,'generated'),'-A',path.join(work,'assets'),'--min-sdk-version','26','--target-sdk-version','35',path.join(work,'compiled.zip')]);
+const sources=[path.join(root,'android/src/com/orbit/life/MainActivity.java'),path.join(work,'generated/com/orbit/life/R.java')];
+run(exe('javac'),['-encoding','UTF-8','--release','8','-classpath',platform,'-d',path.join(work,'classes'),...sources]);
+run(exe('jar'),['cf',path.join(work,'classes.jar'),'-C',path.join(work,'classes'),'.']);
+run(exe('java'),['-cp',path.join(tools,'lib/d8.jar'),'com.android.tools.r8.D8','--min-api','26','--lib',platform,'--output',path.join(work,'dex'),path.join(work,'classes.jar')]);
+fs.copyFileSync(unsigned,path.join(work,'dex/app.apk'));
+run(path.join(tools,'aapt.exe'),['add','app.apk','classes.dex'],{cwd:path.join(work,'dex')});
+const aligned=path.join(work,'aligned.apk');run(path.join(tools,'zipalign.exe'),['-f','-p','4',path.join(work,'dex/app.apk'),aligned]);
+const keyStore=path.join(local,'android-signing.p12'),passFile=path.join(local,'android-signing.json');
+let pass;if(fs.existsSync(passFile))pass=JSON.parse(fs.readFileSync(passFile,'utf8')).password;else{pass=crypto.randomBytes(32).toString('hex');fs.writeFileSync(passFile,JSON.stringify({password:pass}));}
+const env={...process.env,ORBIT_SIGN_PASS:pass};
+if(!fs.existsSync(keyStore))run(exe('keytool'),['-genkeypair','-keystore',keyStore,'-storetype','PKCS12','-storepass:env','ORBIT_SIGN_PASS','-keypass:env','ORBIT_SIGN_PASS','-alias','orbit','-keyalg','RSA','-keysize','3072','-validity','10000','-dname','CN=Orbit Life, O=Orbit, C=CN'],{env});
+const apk=path.join(release,'Orbit-Life-Android.apk');
+run(exe('java'),['-jar',path.join(tools,'lib/apksigner.jar'),'sign','--ks',keyStore,'--ks-key-alias','orbit','--ks-pass','env:ORBIT_SIGN_PASS','--key-pass','env:ORBIT_SIGN_PASS','--out',apk,aligned],{env});
+run(exe('java'),['-jar',path.join(tools,'lib/apksigner.jar'),'verify','--verbose',apk]);
+console.log('Android APK ready: '+apk);

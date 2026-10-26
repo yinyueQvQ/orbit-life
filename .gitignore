@@ -43,3 +43,16 @@ yarn-error.log*
 
 # OS metadata
 .DS_Store
+
+/data/
+/dist-local/
+/local/.server.pid
+/release/
+/android/build/
+*.keystore
+*.jks
+*.p12
+*.dpapi
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
