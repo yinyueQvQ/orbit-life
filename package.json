@@ -15,7 +15,7 @@
     "build:local": "vite build --config vite.local.config.ts",
     "start:local": "node local/launcher.mjs",
     "build:android": "node scripts/build-android.mjs",
-    "test:domain": "node --test tests/domain.test.mjs"
+    "test:domain": "node --test tests/domain.test.mjs tests/android-archive.test.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
