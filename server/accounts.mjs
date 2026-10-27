@@ -1,6 +1,7 @@
 import {hashPassword,verifyPassword,randomToken,digest} from './passwords.mjs';
 import {newState,normalizeState,publicState,applyChange,validateBackup} from '../shared/domain.mjs';
 import {createWorkspace} from '../shared/workspace.mjs';
+import {mergeLocalData} from '../shared/migration.mjs';
 const COOKIE='orbit_session';
 const json=(status,data,headers={})=>new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff',...headers}});
 const cleanUser=u=>({id:u.id,username:u.username,displayName:u.display_name});
@@ -36,6 +37,10 @@ export function createAccountAPI({store,complete}){
  if(path==='/api/auth/password'&&method==='POST'){if(!await verifyPassword(b.currentPassword,user.password_hash))return json(400,{error:'当前密码不正确'});const hash=await hashPassword(b.password);await store.run('UPDATE orbit_users SET password_hash=? WHERE id=?',hash,user.id);await store.run('DELETE FROM orbit_sessions WHERE user_id=?',user.id);return issue(user,req);}
  const r=await row(user.id),state=normalizeState(JSON.parse(r.value));
  if(path==='/api/account/export'&&method==='GET')return json(200,{state,revision:r.revision,updatedAt:r.updated_at});
+ if(path==='/api/account/migrate'&&method==='POST'){
+ if(b.revision!==r.revision)return json(409,{error:'云端记录已更新，请重新预览迁移'});
+ const result=mergeLocalData(state,b.state);await commit(user.id,r,result.state);return json(200,{ok:true,added:result.added});
+ }
  if(path==='/api/account/import'&&method==='POST'){if(b.revision!==r.revision)return json(409,{error:'数据已变化，请重新确认导入'});const next=validateBackup(normalizeState(b.state));await commit(user.id,r,next);return json(200,{ok:true});}
  if(path==='/api/life'&&method==='GET')return json(200,{...publicState(state),revision:r.revision,updatedAt:r.updated_at});
  if(path==='/api/life'&&method==='POST'){

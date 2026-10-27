@@ -52,7 +52,7 @@ async function accounts(req,res,url){
  if(useCloud){headers['X-Orbit-Client']='native';if(remoteToken)headers.Authorization='Bearer '+remoteToken;}else if(req.headers.cookie)headers.Cookie=req.headers.cookie;
  if(url.pathname.startsWith('/api/chat')&&hasKey())headers['X-Orbit-AI-Key']=await readKey();
  let response;if(useCloud){response=await fetch(target,{method:req.method,headers,body:req.method==='POST'?raw:undefined,redirect:'error',signal:AbortSignal.timeout(180000)});}else{response=await accountAPI(new Request(target,{method:req.method,headers,body:req.method==='POST'?raw:undefined}));}
- let data;try{data=await response.json()}catch{return json(res,503,{error:'云端账号服务尚未开放，请先使用本机账号或本机体验模式'})}
+ let data;try{data=await response.json()}catch{return json(res,503,{error:response.status===403?'云端网关拒绝连接（403），尚未验证账号密码。本机数据保留。':'云端返回异常（'+response.status+'），请稍后重试。本机数据保留。'})}
  const cookies=[];if(useCloud&&data.token){cookies.push('orbit_cloud_session='+data.token+'; HttpOnly; Path=/; SameSite=Lax; Max-Age=2592000');cookies.push('orbit_session=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0');delete data.token;}
  if(!useCloud&&response.headers.get('set-cookie')){cookies.push(response.headers.get('set-cookie'));cookies.push('orbit_cloud_session=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0');}
  if(url.pathname==='/api/auth/logout'){cookies.push('orbit_cloud_session=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0');cookies.push('orbit_session=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0');}
