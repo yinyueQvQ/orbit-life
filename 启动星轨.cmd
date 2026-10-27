@@ -1,4 +1,4 @@
 @echo off
 cd /d "%~dp0"
-node local\launcher.mjs
+if exist "runtime\node.exe" ("runtime\node.exe" local\launcher.mjs) else (node local\launcher.mjs)
 if errorlevel 1 pause

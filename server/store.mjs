@@ -1,0 +1,7 @@
+export const accountSchema=`CREATE TABLE IF NOT EXISTS orbit_users (id TEXT PRIMARY KEY, username TEXT NOT NULL UNIQUE, display_name TEXT NOT NULL, password_hash TEXT NOT NULL, recovery_hash TEXT NOT NULL, created_at INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS orbit_sessions (token_hash TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES orbit_users(id) ON DELETE CASCADE, expires INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS orbit_workspaces (user_id TEXT PRIMARY KEY REFERENCES orbit_users(id) ON DELETE CASCADE, value TEXT NOT NULL, revision INTEGER NOT NULL DEFAULT 0, updated_at INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS orbit_requests (user_id TEXT NOT NULL, request_id TEXT NOT NULL, result TEXT NOT NULL, created_at INTEGER NOT NULL, PRIMARY KEY(user_id,request_id));
+CREATE TABLE IF NOT EXISTS orbit_limits (bucket TEXT PRIMARY KEY, attempts INTEGER NOT NULL, expires INTEGER NOT NULL);`;
+export function nodeStore(db){return {get:async(sql,...args)=>db.prepare(sql).get(...args),all:async(sql,...args)=>db.prepare(sql).all(...args),run:async(sql,...args)=>{const r=db.prepare(sql).run(...args);return {changes:Number(r.changes)}}};}
+export function d1Store(db){return {get:async(sql,...args)=>db.prepare(sql).bind(...args).first(),all:async(sql,...args)=>(await db.prepare(sql).bind(...args).all()).results,run:async(sql,...args)=>{const r=await db.prepare(sql).bind(...args).run();return {changes:r.meta.changes||0}}};}

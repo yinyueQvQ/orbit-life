@@ -1,13 +1,4 @@
-import {env} from 'cloudflare:workers';
-import {getChatGPTUser} from '../../chatgpt-auth';
-const day=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Shanghai'}).format(new Date());
-export async function GET(){const u=await getChatGPTUser();if(!u)return Response.json({error:'请先登录'}, {status:401});const db=env.DB!;await db.prepare('INSERT OR IGNORE INTO profiles (owner) VALUES (?)').bind(u.userId).run();const [h,c,t,p]=await Promise.all([db.prepare('SELECT * FROM habits WHERE owner=? ORDER BY created').bind(u.userId).all(),db.prepare('SELECT * FROM checks WHERE owner=?').bind(u.userId).all(),db.prepare('SELECT * FROM transactions WHERE owner=? ORDER BY date DESC,id DESC').bind(u.userId).all(),db.prepare('SELECT * FROM profiles WHERE owner=?').bind(u.userId).first()]);return Response.json({habits:h.results,checks:c.results,transactions:t.results,profile:p});}
-export async function POST(req:Request){const u=await getChatGPTUser();if(!u)return Response.json({error:'请先登录'}, {status:401});if(req.headers.get('origin')!==new URL(req.url).origin)return Response.json({error:'无效来源'},{status:403});const db=env.DB!;try{const b=await req.json() as any;const owner=u.userId;const str=(x:unknown,max=80)=>typeof x==='string'&&x.trim().length>0&&x.length<=max;
-if(b.action==='habit'){if(!str(b.name)||!str(b.goal)||!str(b.category)||!str(b.icon,10))throw Error('请完整填写习惯');await db.prepare('INSERT INTO habits VALUES (?,?,?,?,?,?,?)').bind(crypto.randomUUID(),owner,b.name.trim(),b.category,b.icon,b.goal,day()).run();}
-else if(b.action==='check'){if(b.date!==day())throw Error('只能记录今天的打卡');const h=await db.prepare('SELECT id FROM habits WHERE id=? AND owner=?').bind(b.id,owner).first();if(!h)throw Error('习惯不存在');const id=owner+':'+b.id+':'+day();if(b.done)await db.prepare('INSERT OR IGNORE INTO checks VALUES (?,?,?,?)').bind(id,owner,b.id,day()).run();else await db.prepare('DELETE FROM checks WHERE id=? AND owner=?').bind(id,owner).run();}
-else if(b.action==='deleteHabit'){await db.batch([db.prepare('DELETE FROM checks WHERE habit=? AND owner=?').bind(b.id,owner),db.prepare('DELETE FROM habits WHERE id=? AND owner=?').bind(b.id,owner)]);}
-else if(b.action==='transaction'){if(!Number.isSafeInteger(b.amount)||b.amount<=0||b.amount>100000000||!['income','expense'].includes(b.kind)||!str(b.category)||!/^\d{4}-\d{2}-\d{2}$/.test(b.date)||b.date>day()||typeof b.note!=='string'||b.note.length>120)throw Error('请检查金额和日期');await db.prepare('INSERT INTO transactions VALUES (?,?,?,?,?,?,?)').bind(crypto.randomUUID(),owner,b.amount,b.kind,b.category,b.note,b.date).run();}
-else if(b.action==='deleteTransaction')await db.prepare('DELETE FROM transactions WHERE id=? AND owner=?').bind(b.id,owner).run();
-else if(b.action==='budget'){if(!Number.isSafeInteger(b.amount)||b.amount<=0||b.amount>100000000)throw Error('预算金额无效');await db.prepare('UPDATE profiles SET budget=? WHERE owner=?').bind(b.amount,owner).run();}
-else if(b.action==='feed'){const r=await db.prepare('UPDATE profiles SET feeds=feeds+1 WHERE owner=? AND feeds*10 < (SELECT COUNT(*)*10 FROM checks WHERE owner=?)').bind(owner,owner).run();if(!r.meta.changes)throw Error('能量不足，完成一次打卡即可获得 10 能量');}
-else throw Error('未知操作');return Response.json({ok:true});}catch(e){return Response.json({error:e instanceof Error?e.message:'保存失败'},{status:400});}}
+import {cloudAPI} from '../../../cloud/handler';
+export const GET=cloudAPI;
+export const POST=cloudAPI;
+export const DELETE=cloudAPI;

@@ -1,22 +1,27 @@
 export const beijingDay=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Shanghai'}).format(new Date());
-export function newState(){return {habits:[],checks:[],transactions:[],goals:[],notes:[],pending:[],messages:[],profile:{budget:300000,pet_name:'团团',feeds:0,focus:0},forecast:{salary:0,bonus:0,deductions:0,other:0,expenses:0,savingTarget:0,currentSavings:0}};}
+export function newState(){return {focusSessions:[],timerSettings:{minutes:25,breakMinutes:5},habits:[],checks:[],transactions:[],goals:[],notes:[],pending:[],messages:[],profile:{budget:300000,pet_name:'团团',feeds:0,focus:0},forecast:{salary:0,bonus:0,deductions:0,other:0,expenses:0,savingTarget:0,currentSavings:0}};}
 const fail=s=>{throw Error(s)};
 const text=(v,n=120)=>typeof v==='string'&&v.trim()&&v.length<=n?v.trim():fail('请检查文字内容');
 const amount=(v,zero=false)=>Number.isSafeInteger(v)&&v>=(zero?0:1)&&v<=100000000?v:fail('金额须为有效的非负数（单位为分）');
 const date=(v,optional=false)=>{if(!v&&optional)return '';if(typeof v!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(v)||!Number.isFinite(Date.parse(v))||new Date(v).toISOString().slice(0,10)!==v)fail('日期无效');return v};
 const lookup=(list,id)=>list.find(x=>x.id===id)||fail('记录不存在');
-export const actions=['habit','check','deleteHabit','transaction','deleteTransaction','budget','feed','focus','goal','updateGoal','deleteGoal','note','updateNote','deleteNote','forecast'];
+export const actions=['habit','updateHabit','check','updateCheck','deleteCheck','deleteHabit','transaction','updateTransaction','deleteTransaction','budget','feed','focus','timerSettings','goal','updateGoal','deleteGoal','note','updateNote','deleteNote','forecast'];
 export function applyChange(previous,b,day=beijingDay()){
- const s=structuredClone(previous),id=()=>crypto.randomUUID();
+ const s=structuredClone(normalizeState(previous)),id=()=>crypto.randomUUID();
  switch(b.action){
- case 'habit':s.habits.push({id:id(),owner:'local-owner',name:text(b.name,80),goal:text(b.goal,80),category:['健康','学习','生活'].includes(b.category)?b.category:fail('分类无效'),icon:text(b.icon,10),created:day});break;
- case 'check':{if(b.date!==day||typeof b.done!=='boolean')fail('只能记录今天的打卡');lookup(s.habits,b.id);const key=b.id+':'+day;s.checks=s.checks.filter(c=>!(c.habit===b.id&&c.date===day));if(b.done)s.checks.push({id:key,owner:'local-owner',habit:b.id,date:day});break;}
+ case 'habit':{const h={id:id(),owner:'local-owner',name:text(b.name,80),goal:text(b.goal,80),category:['健康','学习','生活'].includes(b.category)?b.category:fail('分类无效'),icon:text(b.icon,10),created:day,days:[0,1,2,3,4,5,6],archived:false};if(b.days!==undefined){if(!Array.isArray(b.days)||!b.days.length||b.days.some(d=>!Number.isInteger(d)||d<0||d>6))fail('请选择有效的重复日');h.days=[...new Set(b.days)];}s.habits.push(h);break;}
+ case 'updateHabit':{const h=lookup(s.habits,b.id);if(b.name!==undefined)h.name=text(b.name,80);if(b.goal!==undefined)h.goal=text(b.goal,80);if(b.category!==undefined)h.category=['健康','学习','生活'].includes(b.category)?b.category:fail('分类无效');if(b.icon!==undefined)h.icon=text(b.icon,10);if(b.days!==undefined){if(!Array.isArray(b.days)||!b.days.length||b.days.some(d=>!Number.isInteger(d)||d<0||d>6))fail('请选择有效的重复日');h.days=[...new Set(b.days)];}if(b.archived!==undefined){if(typeof b.archived!=='boolean')fail('归档状态无效');h.archived=b.archived;}break;}
+ case 'check':{if(date(b.date)>day||typeof b.done!=='boolean')fail('日期或完成状态无效，不能记录未来');lookup(s.habits,b.id);const key=b.id+':'+b.date;const old=s.checks.find(c=>c.habit===b.id&&c.date===b.date);s.checks=s.checks.filter(c=>!(c.habit===b.id&&c.date===b.date));if(b.done)s.checks.push({id:old?.id||key,owner:'local-owner',habit:b.id,date:b.date,note:b.note===undefined?(old?.note||''):(b.note?text(b.note,500):'')});break;}
+ case 'updateCheck':{const c=lookup(s.checks,b.id);if(b.date!==undefined){if(date(b.date)>day)fail('不能记录未来');if(s.checks.some(x=>x.id!==c.id&&x.habit===c.habit&&x.date===b.date))fail('该习惯在这天已经打卡');c.date=b.date;}if(b.note!==undefined)c.note=b.note?text(b.note,500):'';break;}
+ case 'deleteCheck':lookup(s.checks,b.id);s.checks=s.checks.filter(x=>x.id!==b.id);break;
  case 'deleteHabit':lookup(s.habits,b.id);s.habits=s.habits.filter(x=>x.id!==b.id);s.checks=s.checks.filter(x=>x.habit!==b.id);break;
  case 'transaction':if(!['income','expense'].includes(b.kind))fail('收支类型无效');if(date(b.date)>day)fail('未来收入请写入规划，不能作为实际到账');s.transactions.unshift({id:id(),owner:'local-owner',amount:amount(b.amount),kind:b.kind,category:text(b.category,30),note:typeof b.note==='string'&&b.note.length<=120?b.note:fail('备注过长'),date:b.date});break;
  case 'deleteTransaction':lookup(s.transactions,b.id);s.transactions=s.transactions.filter(x=>x.id!==b.id);break;
  case 'budget':s.profile.budget=amount(b.amount);break;
  case 'feed':if(s.profile.feeds>=s.checks.length)fail('能量不足，先完成一次打卡吧');s.profile.feeds++;break;
- case 'focus':if(!Number.isInteger(b.minutes)||b.minutes<1||b.minutes>240)fail('专注时长无效');s.profile.focus+=b.minutes;break;
+ case 'focus':if(!Number.isInteger(b.minutes)||b.minutes<1||b.minutes>720)fail('专注时长须为1到720分钟');if(b.sessionId&&s.focusSessions.some(x=>x.id===b.sessionId))break;s.profile.focus+=b.minutes;s.focusSessions.unshift({id:b.sessionId?text(b.sessionId,120):id(),minutes:b.minutes,label:b.label?text(b.label,80):'自由专注',date:day,completedAt:new Date().toISOString()});break;
+ case 'timerSettings':if(!Number.isInteger(b.minutes)||b.minutes<1||b.minutes>720||!Number.isInteger(b.breakMinutes)||b.breakMinutes<1||b.breakMinutes>120)fail('专注1到720分钟，休息1到120分钟');s.timerSettings={minutes:b.minutes,breakMinutes:b.breakMinutes};break;
+ case 'updateTransaction':{const old=lookup(s.transactions,b.id);const checked=applyChange(newState(),{...old,...b,action:'transaction'},day).transactions[0];Object.assign(old,checked,{id:old.id});break;}
  case 'goal':s.goals.push({id:id(),title:text(b.title,80),target:amount(b.target,true),saved:amount(b.saved||0,true),deadline:date(b.deadline,true),done:false});break;
  case 'updateGoal':{const g=lookup(s.goals,b.id);if(b.title!==undefined)g.title=text(b.title,80);if(b.target!==undefined)g.target=amount(b.target,true);if(b.saved!==undefined)g.saved=amount(b.saved,true);if(b.deadline!==undefined)g.deadline=date(b.deadline,true);if(b.done!==undefined){if(typeof b.done!=='boolean')fail('完成状态无效');g.done=b.done;}break;}
  case 'deleteGoal':lookup(s.goals,b.id);s.goals=s.goals.filter(x=>x.id!==b.id);s.notes.forEach(n=>{if(n.goalId===b.id)n.goalId=''});break;
@@ -28,7 +33,7 @@ export function applyChange(previous,b,day=beijingDay()){
  }return s;
 }
 export function forecastSummary(s){const f=s.forecast;const income=f.salary+f.bonus+f.other-f.deductions,available=income-f.expenses,gap=Math.max(0,f.savingTarget-available),next=new Date(beijingDay()+'T12:00:00');next.setDate(1);next.setMonth(next.getMonth()+1);return {month:next.toISOString().slice(0,7),income,expenses:f.expenses,available,target:f.savingTarget,gap,balance:f.currentSavings+available};}
-export function publicState(s){const {messages,pending,...rest}=s;return {...rest,forecastSummary:forecastSummary(s)};}
+export function publicState(s){s=normalizeState(s);const {messages,pending,_applied,...rest}=s;return {...rest,forecastSummary:forecastSummary(s)};}
 export function readScope(s,scope){switch(scope){case 'habits':return {habits:s.habits,checks:s.checks.slice(-100)};case 'money':return {transactions:s.transactions.slice(0,60),budget:s.profile.budget};case 'goals':return {goals:s.goals,notes:s.notes};case 'forecast':return {...s.forecast,...forecastSummary(s)};case 'pet':return {level:Math.floor(s.checks.length/10)+1,energy:Math.max(0,s.checks.length*10-s.profile.feeds*10),feeds:s.profile.feeds,focusMinutes:s.profile.focus};default:return {habits:s.habits,goals:s.goals,notes:s.notes,forecast:{...s.forecast,...forecastSummary(s)},budget:s.profile.budget,totalChecks:s.checks.length,transactionCount:s.transactions.length};}}
 export function confirmProposal(previous,id){const p=lookup(previous.pending,id);if(Date.now()>p.expires)fail('建议已过期，请让团团重新生成');const s=applyChange(previous,p.change);s.pending=s.pending.filter(x=>x.id!==id);return s;}
 export function propose(s,change){if(!actions.includes(change.action))fail('不支持的 AI 操作');applyChange(s,change);const record=[...s.habits,...s.goals,...s.notes,...s.transactions].find(x=>x.id===change.id);const targetLabel=record?(record.name||record.title||[record.date,record.category,((record.amount||0)/100).toFixed(2)+'元'].join(' · ')):'';const goalLabel=change.goalId?s.goals.find(g=>g.id===change.goalId)?.title||'':'';return {id:crypto.randomUUID(),change,targetLabel,goalLabel,expires:Date.now()+20*60*1000};}
@@ -47,3 +52,5 @@ export function validateBackup(s){
  for(const m of s.messages)if(!m||!['user','assistant'].includes(m.role)||typeof m.content!=='string'||m.content.length>10000)fail('对话格式无效');
  return {...s,pending:[],messages:s.messages.slice(-60)};
 }
+
+export function normalizeState(value={}){const base=newState();return {...base,...value,profile:{...base.profile,...value.profile},forecast:{...base.forecast,...value.forecast},timerSettings:{...base.timerSettings,...value.timerSettings},focusSessions:value.focusSessions||[],habits:(value.habits||[]).map(h=>({...h,days:h.days||[0,1,2,3,4,5,6],archived:Boolean(h.archived)})),checks:(value.checks||[]).map(c=>({...c,note:c.note||''}))};}

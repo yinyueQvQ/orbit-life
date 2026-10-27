@@ -1,75 +1,59 @@
-# 星轨 ORBIT
+# 星轨 ORBIT 2.0
 
-一个以星际伙伴「团团」为中心的生活管理应用：习惯打卡、收支账本、目标备忘、下月收入与储蓄规划，以及可以查询记录、提出操作建议的 DeepSeek AI 伙伴。
+习惯打卡、收支账本、目标备忘、收入储蓄规划、自定义专注与 AI 伙伴「团团」。
 
-## 电脑本地版
+## 直接使用
 
-需要 Node.js 24+。首次下载源码后执行：
+在 GitHub Releases 下载：
+- Windows：`Orbit-Life-Windows.zip`，完整解压后双击「启动星轨.cmd」，自带 Node 运行环境。地址 http://127.0.0.1:4318/ 。停止服务用「停止星轨.cmd」。
+- Android 8.0+：`Orbit-Life-Android.apk` 或安卓压缩包。覆盖安装保留原数据，不要先卸载。2.0 使用与旧版相同的签名。
+
+安装包与源码均不含 API 密钥、用户记录或签名私钥。
+
+## 账号、数据库与同步
+
+- 云端账号：电脑和手机登录同一星轨账号，数据存入账号数据库；打开页面、切回应用及每 20 秒刷新。写入采用版本检查，冲突提示刷新，不静默覆盖其他设备。
+- 本机账号：Windows SQLite 账号，数据只在本电脑。云端网页和安卓使用云端账号。
+- 本机体验：无需注册，Windows SQLite／安卓私有 SQLite 存储。旧版数据保留。
+- 账号页可将本机体验数据导入当前账号，导入会替换账号数据，需明确确认；先导出备份。
+- 密码使用 scrypt 加盐哈希；会话使用 HttpOnly Cookie（电脑）或 Android Keystore 加密令牌（手机）。恢复码只显示一次，请妥善保存。
+- 云端入口：https://orbit-habit-life.purplepark65.chatgpt.site 。后端已部署；当前托管访问范围仍受所有者设置限制，开放入口后才能在不登录 GPT 的设备上使用云同步。源码公开不代表个人数据公开。
+- 网络断开时安卓可读取当前账号缓存，账号写入需要联网。进行中的计时器按设备保存，完成专注记录参与同步。
+
+电脑数据库为 `data/orbit.sqlite`。复制整个 data 目录前先停止服务。GitHub 用于同步源码与发布安装包，个人记录存放在账号数据库，不提交到公开仓库。
+
+## 功能
+
+- 习惯：新建、搜索、分类、编辑、重复星期、归档／恢复、删除。
+- 打卡：当天完成、历史补记、按习惯与日期查看、修改日期与备注、删除。删除习惯会一并删除该习惯的打卡记录。
+- 专注：1–720 分钟、自定义休息 1–120 分钟、暂停／继续、关联事项、按真实截止时间恢复、完成历史与统计。
+- 账本：收入支出增删改查、分类、月份筛选、预算与导出。
+- 目标与备忘：关联目标、截止日期、完成状态、编辑删除；支持生活目标与储蓄目标。
+- 规划：预计到手＝工资＋奖金加班＋其他收入－扣款；预计可存＝到手－生活支出；储蓄缺口＝计划存款－预计可存，最低零。预测不会记为实际收入，目标积累金额需单独维护。
+- 团团：查询相关数据，提出打卡、记账、目标、备忘、规划及专注设置的操作建议，用户确认后才写入。
+
+## AI 密钥
+
+Windows 双击「配置团团AI.cmd」输入 DeepSeek 密钥，Windows DPAPI 加密保存到 `%LOCALAPPDATA%/Orbit/deepseek.key.dpapi`，在项目外。也可使用后端环境变量 `DEEPSEEK_API_KEY`，不要加 VITE_ 或 NEXT_PUBLIC_ 前缀。
+
+安卓在账号页 AI 设置中输入自己的密钥，由 Android Keystore 加密。云端账号聊天时，设备通过 HTTPS 临时向后端提供密钥用于 DeepSeek 请求，不写入账号数据库；网页客户端不提供密钥输入。聊天及请求查询的数据将发给 DeepSeek。固定官方 HTTPS 接口，模型 `deepseek-flash`。
+
+AI 不执行系统命令、读取任意文件或进行转账；操作需要确认。已发送到聊天或公开的密钥应在服务商后台更换。
+
+## 开发
+
+Node.js 24：
 
 ```sh
 npm ci
 npm run build:local
 npm run start:local
-```
-
-Windows 也可以双击「启动星轨.cmd」；首次使用前先完成上面的依赖安装与构建。「停止星轨.cmd」可停止服务。地址固定为 http://127.0.0.1:4318/，无需 ChatGPT 登录，仅监听本机。
-
-数据：`data/orbit.sqlite`，与线上旧版独立。升级到本版本时会自动保留、迁移旧本地习惯和账本。备份电脑数据前先停止应用，再复制整个 `data/` 目录。
-
-## 团团 AI 与密钥
-
-双击「配置团团AI.cmd」，在密码式输入框中输入自己的 DeepSeek 密钥。密钥由 Windows DPAPI 加密存入 `%LOCALAPPDATA%/Orbit/deepseek.key.dpapi`，不写入项目目录、前端代码、聊天记录或 Git。
-
-也支持后端读取 `DEEPSEEK_API_KEY` 环境变量。不要使用 VITE_ 或 NEXT_PUBLIC_ 前缀保存密钥，不要把密钥粘贴到聊天里。接口固定为 DeepSeek 官方 HTTPS 地址，模型为 `deepseek-flash`。
-
-聊天内容以及你要求团团查询的相关应用数据会发送至 DeepSeek。AI 只能读取白名单范围，并提出更改建议；必须由用户在确认卡片点击后执行。不支持执行系统命令、读取电脑文件、转账或金融交易。历史保存在本机，最近 6 轮对话作为上下文。请求失败不会假装成功。
-
-## 目标备忘与规划
-
-- 备忘可以关联目标、设置截止日期、勾选完成、编辑或删除。
-- 目标可为普通生活目标，或带目标金额、已有积累的储蓄目标。
-- 预计到手＝预计工资＋奖金／加班＋其他收入－扣款。
-- 预计可存＝预计到手－预计生活支出。
-- 储蓄缺口＝计划存款－预计可存（最低为零）。
-- 预计数与实际账本分开保存，不会把预测收入当作已到账；储蓄目标的积累金额也由用户单独更新。
-
-## 安卓版
-
-请使用 1.0.2 或更新版本。1.0.0／1.0.1 存在 Windows 打包路径错误，会导致安卓黑屏；1.0.2 已修复并加入资源路径回归检查和原生启动失败提示。更新时直接覆盖安装，不要卸载，以保留本机数据。
-
-`release/Orbit-Life-Android.apk` 为安卓安装包，压缩包内包含它和安装说明。Android 8.0+，建议更新系统 Android WebView。无需电脑服务器；习惯、账本、备忘与规划离线使用，AI 需要联网。
-
-首次使用在应用「AI 设置」中单独输入自己的 DeepSeek 密钥，由 Android Keystore 加密保存在该手机。APK 与 GitHub 不含任何用户密钥。手机与电脑目前独立保存数据，不自动同步。手机顶部提供 JSON 备份和恢复；备份不含 API 密钥。恢复会替换本机数据，先备份再操作。卸载应用会删除手机本地记录。
-
-### 构建安卓 APK
-
-```sh
-npm run build:android
-```
-
-需要 Java 21、Android Build Tools 35 与 Android Platform 35。将 `ORBIT_ANDROID_SDK` 指向包含 `build-tools/` 和 `platform/android.jar` 的 SDK 目录；未指定时使用 `%LOCALAPPDATA%/Orbit/android-sdk`。当前构建脚本面向 Windows，不依赖 Android Studio 或 Gradle。
-
-签名文件在 `%LOCALAPPDATA%/Orbit/android-signing.p12`，口令文件同目录；均不属于项目、不会提交 Git。应自行备份签名文件，使用同一签名才能覆盖安装并保留手机数据。
-
-## 开发与验证
-
-```sh
 npm run test:domain
 npx tsc --noEmit
-npm run build:local
 ```
 
-- `shared/domain.mjs`：跨电脑／手机的状态、验证、备忘及收支计算。
-- `shared/workspace.mjs`：API 与 AI 工具、确认流程。
-- `local/server.mjs`：电脑 SQLite、回环 HTTP 与 DeepSeek 请求。
-- `mobile/runtime.mjs`：安卓本地数据适配。
-- `android/`：WebView、Android Keystore、HTTPS 与文件导入导出。
-- `app/page.tsx`、`components/`、`app/globals.css`：界面。
+`npm run build` 构建云端，使用 D1；`db/schema.ts` 与 `drizzle/` 保存数据库迁移。`server/accounts.mjs` 是电脑与云端共用的账号 API，`shared/` 为状态及 AI 逻辑，`mobile/runtime.mjs` 和 `android/` 为安卓桥接，`app/v2.css` 为新版响应式界面。
 
-仓库还保留最初的 Sites 服务端模板；最新目标、规划和 AI 功能以本地版及安卓版为准，不能直接假设旧在线版已包含这些功能。
+`npm run build:android` 需要 Java 21、Android Build Tools 35 和 Platform 35。SDK 默认 `%LOCALAPPDATA%/Orbit/android-sdk`；可设置 `ORBIT_ANDROID_SDK`。签名文件及口令保存在 `%LOCALAPPDATA%/Orbit/`，不在仓库；请自行备份，更新必须使用同一签名。构建检查 APK 内资源路径，避免 Windows 反斜杠引起安卓黑屏。
 
-## 隐私与仓库
-
-`.gitignore` 排除了数据库、运行日志、密钥文件、签名文件、依赖与构建输出。分享源码不包含你的个人记录或 API 凭据；忽略规则不替代提交前检查。任何已经公开或发送到聊天中的密钥都应在服务商后台更换。
-
-中文字体采用 Noto Sans SC 和 Ma Shan Zheng，字体授权在 `public/fonts/` 中。
+发布前运行 `node scripts/scan-secrets.mjs` 检查源码、Git 历史、APK、Windows 包和前端产物。`.gitignore` 排除数据库、密钥、日志、签名及输出。中文字体 Noto Sans SC 和 Ma Shan Zheng，授权在 `public/fonts/`。
