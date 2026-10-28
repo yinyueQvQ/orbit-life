@@ -34,7 +34,7 @@ const workspace=createWorkspace({load:()=>JSON.parse(db.prepare('SELECT value FR
  const key=await readKey();if(!key)throw Error('请先配置密钥');
  try{const r=await fetch('https://api.deepseek.com/chat/completions',{method:'POST',redirect:'error',signal:AbortSignal.timeout(45000),headers:{Authorization:'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify(body)});if(!r.ok)throw Error(({401:'密钥无效，请重新配置',402:'DeepSeek余额不足',429:'请求繁忙，请稍后重试'})[r.status]||'DeepSeek暂时不可用');return await r.json();}catch(e){if(e.name==='TimeoutError'||e.name==='TypeError')throw Error('网络连接失败或超时');throw e;}
 }});
-async function api(req,res,path){if(req.method!=='GET'&&req.headers.origin!=='http://'+host+':'+port)return json(res,403,{error:'无效来源'});let body={};if(req.method==='POST'){try{let raw='';for await(const c of req){raw+=c;if(raw.length>20000)return json(res,413,{error:'请求过长'});}body=JSON.parse(raw);}catch{return json(res,400,{error:'格式无效'});}}const result=await workspace(path,req.method,body);return json(res,result.status,result.data);}
+async function api(req,res,path){if(req.method!=='GET'&&req.headers.origin!=='http://'+host+':'+port)return json(res,403,{error:'无效来源'});let body={};if(req.method==='POST'){try{let raw='';for await(const c of req){raw+=c;if(raw.length>180000)return json(res,413,{error:'请求过长'});}body=JSON.parse(raw);}catch{return json(res,400,{error:'格式无效'});}}const result=await workspace(path,req.method,body);return json(res,result.status,result.data);}
 const accountAPI=createAccountAPI({store:nodeStore(db),complete:callDeepSeek});
 const cloud=process.env.ORBIT_SYNC_URL||SYNC_URL;
 const readCookie=(req,name)=>req.headers.cookie?.split(';').map(x=>x.trim()).find(x=>x.startsWith(name+'='))?.slice(name.length+1);
@@ -50,7 +50,7 @@ async function accounts(req,res,url){
  let headers={'Content-Type':'application/json',Origin:new URL(useCloud?cloud:'http://'+host+':'+port).origin};
  let target=new URL(url.pathname,useCloud?cloud:'http://'+host+':'+port);
  if(useCloud){headers['X-Orbit-Client']='native';if(remoteToken)headers.Authorization='Bearer '+remoteToken;}else if(req.headers.cookie)headers.Cookie=req.headers.cookie;
- if(url.pathname.startsWith('/api/chat')&&hasKey())headers['X-Orbit-AI-Key']=await readKey();
+ if((url.pathname.startsWith('/api/chat')||url.pathname==='/api/plans/draft'||url.pathname==='/api/journal/reflect')&&hasKey())headers['X-Orbit-AI-Key']=await readKey();
  let response;if(useCloud){response=await fetch(target,{method:req.method,headers,body:req.method==='POST'?raw:undefined,redirect:'error',signal:AbortSignal.timeout(180000)});}else{response=await accountAPI(new Request(target,{method:req.method,headers,body:req.method==='POST'?raw:undefined}));}
  let data;try{data=await response.json()}catch{return json(res,503,{error:response.status===403?'云端网关拒绝连接（403），尚未验证账号密码。本机数据保留。':'云端返回异常（'+response.status+'），请稍后重试。本机数据保留。'})}
  const cookies=[];if(useCloud&&data.token){cookies.push('orbit_cloud_session='+data.token+'; HttpOnly; Path=/; SameSite=Lax; Max-Age=2592000');cookies.push('orbit_session=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0');delete data.token;}
@@ -59,7 +59,7 @@ async function accounts(req,res,url){
  if(data.user)data.mode=useCloud?'cloud':'local';if(cookies.length)res.setHeader('Set-Cookie',cookies);return json(res,response.status,data);
  }catch{return json(res,503,{error:'无法连接账号服务。离线数据不会被清除，请检查网络后重试。'})}
 }
-const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.woff2':'font/woff2','.ttf':'font/ttf'};
+const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.wasm':'application/wasm','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.woff2':'font/woff2','.ttf':'font/ttf'};
 const server=http.createServer(async(req,res)=>{if(req.headers.host!==`${host}:${port}`)return json(res,403,{error:'仅允许本机访问'});const url=new URL(req.url,`http://${host}:${port}`);if(url.pathname==='/api/local-health')return json(res,200,{app:'orbit-local',pid:process.pid});if(url.pathname.startsWith('/api/'))return accounts(req,res,url);if(!['GET','HEAD'].includes(req.method))return json(res,405,{error:'不支持此操作'});try{const relative=decodeURIComponent(url.pathname==='/'?'/local.html':url.pathname);const base=path.join(root,'dist-local');const file=path.resolve(base,'.'+relative);if(!file.startsWith(base+path.sep)||!existsSync(file))return json(res,404,{error:'文件不存在'});res.writeHead(200,{'Content-Type':mime[path.extname(file)]||'application/octet-stream','X-Content-Type-Options':'nosniff'});res.end(req.method==='HEAD'?undefined:readFileSync(file));}catch{return json(res,400,{error:'请求无效'});}});
 server.on('error',e=>{console.error(e.code==='EADDRINUSE'?'星轨已在运行，打开 http://127.0.0.1:'+port:e.message);process.exitCode=1;});
 server.listen(port,host,()=>console.log(`星轨本地版已启动：http://${host}:${port}\n数据目录：${dataDir}\n关闭请使用“停止星轨.cmd”。`));

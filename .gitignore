@@ -56,3 +56,4 @@ yarn-error.log*
 *.sqlite
 *.sqlite-wal
 *.sqlite-shm
+/public/pdf-assets/

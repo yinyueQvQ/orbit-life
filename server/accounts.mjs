@@ -48,8 +48,8 @@ export function createAccountAPI({store,complete}){
  if(b._revision!==undefined&&b._revision!==r.revision)return json(409,{error:'其他设备已更新记录，请刷新后重试'});
  const next=applyChange(state,b);if(typeof b._requestId==='string'&&b._requestId.length<=120)next._applied=[...(state._applied||[]),b._requestId].slice(-1000);await commit(user.id,r,next);return json(200,{ok:true,revision:r.revision+1});
  }
- if(path==='/api/chat'||path==='/api/chat/actions'){
- if(method==='POST'&&path==='/api/chat')await limit('chat:'+user.id,20,60000);
+ if(path==='/api/chat'||path==='/api/chat/actions'||path==='/api/plans/draft'||path==='/api/journal/reflect'){
+ if(method==='POST'&&(path==='/api/chat'||path==='/api/plans/draft'))await limit('chat:'+user.id,20,60000);
  const key=req.headers.get('x-orbit-ai-key');const handler=createWorkspace({load:()=>state,save:s=>commit(user.id,r,s),configured:()=>Boolean(key),complete:body=>complete(body,key)});const result=await handler(path,method,b);return json(result.status,result.data);
  }
  return json(404,{error:'接口不存在'});

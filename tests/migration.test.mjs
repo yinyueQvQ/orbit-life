@@ -9,7 +9,7 @@ function localData(){let s=applyChange(newState(),{action:'habit',name:'本机�
 test('migration preserves cloud edits and local originals, and repeated copies add nothing',()=>{
  const local=localData(),original=structuredClone(local);const cloud=mergeLocalData(newState(),local).state;
  cloud.habits[0].name='云端已编辑';cloud.profile.budget=9999;
- const result=mergeLocalData(cloud,local);assert.equal(result.state.habits[0].name,'云端已编辑');assert.equal(result.state.profile.budget,9999);assert.equal(result.state.checks.length,1);assert.equal(result.state.profile.focus,75);assert.deepEqual(Object.values(result.added),[0,0,0,0,0,0]);assert.deepEqual(local,original);
+ const result=mergeLocalData(cloud,local);assert.equal(result.state.habits[0].name,'云端已编辑');assert.equal(result.state.profile.budget,9999);assert.equal(result.state.checks.length,1);assert.equal(result.state.profile.focus,75);assert(Object.values(result.added).every(n=>n===0));assert.deepEqual(local,original);
  result.state.habits[0].name='后来改动';assert.equal(local.habits[0].name,'本机阅读');
 });
 test('register and login do not migrate data; explicit authenticated migration requires current revision',async()=>{

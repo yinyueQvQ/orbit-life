@@ -15,6 +15,7 @@ const work=fs.mkdtempSync(path.join(workRoot,'orbit-android-')),release=path.joi
 console.log('Android build workspace: '+work);
 for(const d of [work,release,path.join(work,'classes'),path.join(work,'generated'),path.join(work,'dex'),path.join(work,'assets/www')])fs.mkdirSync(d,{recursive:true});
 function run(command,args,extra={}){const r=spawnSync(command,args,{cwd:root,stdio:'inherit',windowsHide:true,...extra});if(r.status!==0)throw Error('Build step failed: '+path.basename(command));}
+run(process.execPath,[path.join(root,'scripts/prepare-pdf-assets.mjs')]);
 run(process.execPath,[path.join(root,'node_modules/vite/bin/vite.js'),'build','--config','vite.local.config.ts']);
 fs.cpSync(path.join(root,'dist-local'),path.join(work,'assets/www'),{recursive:true});
 run(path.join(tools,'aapt2.exe'),['compile','--dir',path.join(root,'android/res'),'-o',path.join(work,'compiled.zip')]);
@@ -26,7 +27,7 @@ const html=fs.readFileSync(path.join(root,'dist-local/local.html'),'utf8');
 const requiredAssets=[...html.matchAll(/(?:src|href)="(\/[^"]+)"/g)].map(m=>'assets/www'+m[1]);
 assertAndroidAssets(fs.readFileSync(unsigned),requiredAssets);
 console.log('Android asset paths verified, including HTML, JavaScript and CSS.');
-const sources=[path.join(root,'android/src/com/orbit/life/MainActivity.java'),path.join(work,'generated/com/orbit/life/R.java')];
+const sources=[...fs.readdirSync(path.join(root,'android/src/com/orbit/life')).filter(f=>f.endsWith('.java')).map(f=>path.join(root,'android/src/com/orbit/life',f)),path.join(work,'generated/com/orbit/life/R.java')];
 run(exe('javac'),['-encoding','UTF-8','--release','8','-classpath',platform,'-d',path.join(work,'classes'),...sources]);
 run(exe('jar'),['cf',path.join(work,'classes.jar'),'-C',path.join(work,'classes'),'.']);
 run(exe('java'),['-cp',path.join(tools,'lib/d8.jar'),'com.android.tools.r8.D8','--min-api','26','--lib',platform,'--output',path.join(work,'dex'),path.join(work,'classes.jar')]);

@@ -1,6 +1,6 @@
 {
   "name": "orbit-life",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "private": true,
   "engines": {
     "node": ">=22.13.0"
@@ -15,7 +15,9 @@
     "build:local": "vite build --config vite.local.config.ts",
     "start:local": "node local/launcher.mjs",
     "build:android": "node scripts/build-android.mjs",
-    "test:domain": "node --test tests/domain.test.mjs tests/android-archive.test.mjs tests/accounts.test.mjs tests/habit-focus.test.mjs tests/migration.test.mjs"
+    "test:domain": "node --test tests/domain.test.mjs tests/android-archive.test.mjs tests/accounts.test.mjs tests/habit-focus.test.mjs tests/migration.test.mjs tests/plans-reminders.test.mjs tests/journal.test.mjs",
+    "prebuild": "node scripts/prepare-pdf-assets.mjs",
+    "prebuild:local": "node scripts/prepare-pdf-assets.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
@@ -31,6 +33,7 @@
     "lucide-react": "^1.31.0",
     "next": "16.3.4",
     "next-themes": "^0.4.6",
+    "pdfjs-dist": "6.4.299",
     "radix-ui": "^1.6.7",
     "react": "19.2.6",
     "react-day-picker": "^10.0.1",
