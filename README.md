@@ -1,8 +1,15 @@
-# 星轨 ORBIT 2.1
+# 星轨 ORBIT 2.2
 
 习惯打卡、收支账本、目标备忘、收入储蓄规划、自定义专注与 AI 伙伴「团团」。
 
-## 2.1 新功能
+## 2.2 新功能
+
+- Railway 独立部署：https://orbit-life-production.up.railway.app ，注册星轨账号即可登录，无需 GPT。数据库及图片存放在 Railway /data 持久卷，重新部署保留数据。
+- 随心记每篇最多6张图片，设备压缩、移除元数据后上传；账号之间隔离。支持纯图片记录、放大查看和含图片备份、本机数据可选迁移。AI只读文字，不自动发送照片。
+- 新增纸感浅色界面与夜间切换，随心记把记录和阶段回顾分开。
+- 网页账号页支持配置 DeepSeek 密钥，服务端 AES-256-GCM 加密保存，不提供密钥读取接口。
+
+## 2.1 功能
 
 - 安卓系统栏：Android 11+ 统一在原生根布局处理状态栏、导航栏、刘海及键盘 Insets，避免页面遮住系统时间与电量；保留旧系统默认安全布局。
 - 截止提醒：顶部铃铛查看备忘、PDF任务、目标的到期事项，可选择到期日北京时间7–21点内预设时段。需要主动开启本设备提醒。网页保持打开时站内弹窗，浏览器允许通知时可显示系统通知；关闭网页后不运行定时器。安卓授权通知后使用本地非精确闹钟，支持重启后恢复，完成/改期/删除及退出账号会更新或取消。系统省电、强行停止可能延迟或阻止通知；跨设备更改需打开此设备同步后更新本地闹钟。
@@ -11,7 +18,7 @@
 - 阶段 AI 回顾：点击后发送所选周期手记给DeepSeek，最多最近40篇/24000字，生成并保存回顾；本机统计不调用AI。不在应用关闭时自动发起付费请求。删除原手记不会删除已保存回顾中的摘录，可另行删除回顾。
 - 团团可查询PDF计划和灵感手记，提出修改任务、完成状态、手记等操作建议，仍需确认后执行。备份和可选云迁移包含新内容。
 
-云端登录仍受现有托管网关的403问题影响，本次不宣称已恢复。上述本机功能及本机模式的AI可独立使用。系统栏、后台通知尚未在用户iQOO实体机验证。
+Railway 账号注册、登录、图片隔离及重新部署后的持久化已验证。尚未在用户 iQOO 实体机验证。
 
 ## 直接使用
 
@@ -28,7 +35,7 @@
 - 本机体验：无需注册，Windows SQLite／安卓私有 SQLite 存储。旧版数据保留。
 - 云端账号页提供可选的“预览本机数据迁移”。登录不会自动迁移或绑定；确认后仅补充缺少的习惯、打卡、账目、目标、备忘、专注记录，保留云端已有记录及本机原件。重复迁移去重；预算、预测、AI 对话及设置不覆盖。
 - 密码使用 scrypt 加盐哈希；会话使用 HttpOnly Cookie（电脑）或 Android Keystore 加密令牌（手机）。恢复码只显示一次，请妥善保存。
-- 云端入口：https://orbit-habit-life.purplepark65.chatgpt.site 。入口已公开，个人记录仍受账号保护。但目前原生请求遭遇 Cloudflare 403 网关拦截，公网登录和同步尚未恢复；2.0.1 会明确显示网关错误，不将其误报为密码错误或尚未开放。源码公开不代表个人数据公开。
+- 云端入口：https://orbit-life-production.up.railway.app 。个人记录受账号保护，用户数据不进入公开 GitHub。旧站账号不会自动迁入新数据库。
 - 网络断开时安卓可读取当前账号缓存，账号写入需要联网。进行中的计时器按设备保存，完成专注记录参与同步。
 
 电脑数据库为 `data/orbit.sqlite`。复制整个 data 目录前先停止服务。GitHub 用于同步源码与发布安装包，个人记录存放在账号数据库，不提交到公开仓库。
@@ -47,7 +54,7 @@
 
 Windows 双击「配置团团AI.cmd」输入 DeepSeek 密钥，Windows DPAPI 加密保存到 `%LOCALAPPDATA%/Orbit/deepseek.key.dpapi`，在项目外。也可使用后端环境变量 `DEEPSEEK_API_KEY`，不要加 VITE_ 或 NEXT_PUBLIC_ 前缀。
 
-安卓在账号页 AI 设置中输入自己的密钥，由 Android Keystore 加密。云端账号聊天时，设备通过 HTTPS 临时向后端提供密钥用于 DeepSeek 请求，不写入账号数据库；网页客户端不提供密钥输入。聊天及请求查询的数据将发给 DeepSeek。固定官方 HTTPS 接口，模型 `deepseek-flash`。
+安卓在账号页 AI 设置中输入自己的密钥，由 Android Keystore 加密。云端账号聊天时，设备通过 HTTPS 临时向后端提供密钥用于 DeepSeek 请求，不写入账号数据库；Railway 网页可在账号页保存加密密钥。聊天及请求查询的数据将发给 DeepSeek。固定官方 HTTPS 接口，模型 `deepseek-flash`。
 
 AI 不执行系统命令、读取任意文件或进行转账；操作需要确认。已发送到聊天或公开的密钥应在服务商后台更换。
 
@@ -68,3 +75,9 @@ npx tsc --noEmit
 `npm run build:android` 需要 Java 21、Android Build Tools 35 和 Platform 35。SDK 默认 `%LOCALAPPDATA%/Orbit/android-sdk`；可设置 `ORBIT_ANDROID_SDK`。签名文件及口令保存在 `%LOCALAPPDATA%/Orbit/`，不在仓库；请自行备份，更新必须使用同一签名。构建检查 APK 内资源路径，避免 Windows 反斜杠引起安卓黑屏。
 
 发布前运行 `node scripts/scan-secrets.mjs` 检查源码、Git 历史、APK、Windows 包和前端产物。`.gitignore` 排除数据库、密钥、日志、签名及输出。中文字体 Noto Sans SC 和 Ma Shan Zheng，授权在 `public/fonts/`。
+
+## Railway 部署
+
+使用仓库 Dockerfile 与 railway.json；挂载持久卷到 /data，设置 PORT=8080、ORBIT_DATA_DIR=/data、ORBIT_PUBLIC_ORIGIN 为服务 HTTPS 域名、ORBIT_ENCRYPTION_KEY 为32字节随机值的Base64。保留该密钥，变更后旧AI密钥将无法解密。SQLite 使用单副本服务，不要横向多副本共享写入。定期备份持久卷。
+
+直连 APK：https://orbit-life-production.up.railway.app/download/android.apk 。服务从本仓库对应版本 Release 校验 SHA256 后缓存分发。

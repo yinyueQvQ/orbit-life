@@ -1,3 +1,4 @@
+import {mediaAPI,exportImages} from '../server/media.mjs';
 import {createAccountAPI,callDeepSeek} from '../server/accounts.mjs';
 import {accountSchema,nodeStore} from '../server/store.mjs';
 import {SYNC_URL} from '../shared/config.mjs';
@@ -45,7 +46,9 @@ async function accounts(req,res,url){
  if(url.pathname==='/api/auth/guest'){res.setHeader('Set-Cookie',['orbit_cloud_session=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0','orbit_session=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0']);return json(res,200,{ok:true});}
  let body={};try{body=raw?JSON.parse(raw):{}}catch{return json(res,400,{error:'请求格式无效'})}
  const remoteToken=readCookie(req,'orbit_cloud_session'),useCloud=Boolean(remoteToken)||body.mode==='cloud';
- if(url.pathname==='/api/guest/export')return json(res,200,JSON.parse(db.prepare('SELECT value FROM local_workspace WHERE id=1').get().value));
+ if(url.pathname==='/api/guest/export'||url.pathname==='/api/guest/state'){const state=JSON.parse(db.prepare('SELECT value FROM local_workspace WHERE id=1').get().value);return json(res,200,url.pathname.endsWith('/state')?state:{...state,_media:await exportImages(nodeStore(db),'local-guest',state)});}
+ if(url.pathname.startsWith('/api/guest/media/')){const media=await mediaAPI(nodeStore(db),'local-guest',url.pathname.replace('/api/guest/media/','/api/media/'),req.method,body);return json(res,media.status,media.data);}
+ if(!useCloud&&!readCookie(req,'orbit_session')&&(url.pathname==='/api/media'||url.pathname.startsWith('/api/media/'))){const media=await mediaAPI(nodeStore(db),'local-guest',url.pathname,req.method,body);return json(res,media.status,media.data);}
  if(!useCloud&&!readCookie(req,'orbit_session')&&!url.pathname.startsWith('/api/auth/'))return api({...req,headers:req.headers,method:req.method,[Symbol.asyncIterator]:async function*(){if(raw)yield raw}},res,url.pathname);
  let headers={'Content-Type':'application/json',Origin:new URL(useCloud?cloud:'http://'+host+':'+port).origin};
  let target=new URL(url.pathname,useCloud?cloud:'http://'+host+':'+port);

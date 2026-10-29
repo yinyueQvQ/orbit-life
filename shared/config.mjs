@@ -1,2 +1,2 @@
-export const SYNC_URL='https://orbit-habit-life.purplepark65.chatgpt.site';
-export const APP_VERSION='2.1.0';
+export const SYNC_URL='https://orbit-life-production.up.railway.app';
+export const APP_VERSION='2.2.0';

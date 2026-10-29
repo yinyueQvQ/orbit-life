@@ -1,0 +1,17 @@
+node_modules
+.git
+.wrangler
+.next
+.sites-runtime
+data
+release
+dist
+dist-local
+work
+local/.server.pid
+public/pdf-assets
+.env*
+*.sqlite*
+*.p12
+*.dpapi
+*.jks
