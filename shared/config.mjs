@@ -1,2 +1,2 @@
 export const SYNC_URL='https://orbit-life-production.up.railway.app';
-export const APP_VERSION='2.4.0';
+export const APP_VERSION='2.4.1';
