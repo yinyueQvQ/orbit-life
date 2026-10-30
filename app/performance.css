@@ -1,7 +1,7 @@
 /* Keep mobile compositing inexpensive while retaining the companion's motion. */
 @media(max-width:760px),(pointer:coarse){
- .nebula{filter:none;opacity:.22}.planet-halo,.planet-sphere span{filter:none}
- :root[data-theme=cosmos] :is(.v2-topbar,.v2-bottom-nav,.v2-hero-ring,.v2-dialog-overlay,.more-overlay,.photo-viewer){backdrop-filter:none;-webkit-backdrop-filter:none}
+ .nebula{filter:none!important;opacity:.22}.planet-halo,.planet-sphere span{filter:none!important}
+ :is(.v2-topbar,.v2-bottom-nav,.v2-hero-ring,.v2-dialog-overlay,.more-overlay,.photo-viewer){backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
  :root[data-theme=cosmos] .v2-topbar{background:#0b1026}:root[data-theme=cosmos] .v2-bottom-nav{background:#10152c}
  :root[data-theme=cosmos] :is(.v2-dialog-overlay,.more-overlay){background:#040716e8}
  .star-layer i{animation:none;box-shadow:none}.star-layer i:nth-child(-n+6){animation:star-twinkle 8s ease-in-out infinite}
