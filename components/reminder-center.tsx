@@ -6,7 +6,7 @@ import {dueReminders} from '../shared/reminders.mjs';
 import {api} from '../client/api.mjs';
 function read(key:string){try{return JSON.parse(localStorage.getItem(key)||'{}')}catch{return {}}}
 export default function ReminderCenter({data,accountKey,onNav,onChange}:{data:any;accountKey:string;onNav:(p:string)=>void;onChange:()=>void}){
- const native=typeof window!=='undefined'?(window as any).OrbitNative:null,key='orbit.reminders.'+accountKey;
+ const native=typeof window!=='undefined'&&(window as any).OrbitNative?.setRemindersEnabled?(window as any).OrbitNative:null,key='orbit.reminders.'+accountKey;
  const [settings,setSettings]=useState<any>(()=>read(key)),[open,setOpen]=useState(false),[popup,setPopup]=useState<any[]>([]),[now,setNow]=useState(Date.now()),[error,setError]=useState(''),[permission,setPermission]=useState('');
  const items=useMemo(()=>dueReminders(data,settings.hour??9),[data,settings.hour]);const relevant=items.filter((r:any)=>r.at<=now+7*86400000),due=items.filter((r:any)=>r.at<=now);
  useEffect(()=>{localStorage.setItem(key,JSON.stringify(settings))},[key,settings]);

@@ -1,0 +1,78 @@
+/* Shared interaction details for both themes and every workspace. */
+.v2-app :is(button,a,input,select,textarea){-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.v2-app :is(button,a):focus-visible{outline:2px solid var(--accent,#b9f778);outline-offset:4px}
+.v2-app :is(input,select,textarea):focus-visible{outline:2px solid var(--accent,#b9f778);outline-offset:2px}
+.v2-app button{transition:background-color .15s ease,color .15s ease,border-color .15s ease,opacity .15s ease}
+.v2-app button:disabled{cursor:wait;opacity:.55}
+.v2-app button:not(:disabled):active{filter:brightness(.9)}
+.v2-app :is(.note-content,.goal-card,.v2-record>div,.planner-top>div){min-width:0;overflow-wrap:anywhere}
+.v2-app :is(.goal-card h3,.note-content strong){line-height:1.6}
+.v2-app .note-row{gap:12px;align-items:center}
+.v2-app .check-btn{flex-shrink:0;transition:background-color .12s ease,border-color .12s ease}
+.v2-app .note-row.completed .note-content{opacity:.65}
+.v2-app :is(.modal,.v2-dialog){overscroll-behavior:contain;scrollbar-gutter:stable;max-height:calc(100dvh - 40px)}
+.v2-app :is(.modal-backdrop,.v2-dialog-overlay){overscroll-behavior:contain}
+.v2-app :is(.modal,.v2-dialog) textarea{width:100%;box-sizing:border-box;resize:vertical;min-height:100px}
+.v2-app :is(.document-excerpt,.document-preview){overflow-wrap:anywhere}
+.v2-app .document-excerpt>div{content-visibility:auto;contain-intrinsic-size:auto 180px}
+.v2-app .planner-top{flex-wrap:wrap;gap:12px}
+.v2-app .filters{display:flex;gap:4px;flex-wrap:wrap}
+@media(pointer:coarse){
+ .v2-app :is(.icon-btn,.v2-icon,.check-btn,.text-btn){min-width:44px;min-height:44px}
+ .v2-app :is(input:not([type=checkbox]):not([type=radio]),select){min-height:44px;font-size:16px}
+ .v2-app :is(.filters button,.space-tabs button){min-height:44px}
+}
+@media(max-width:600px){
+ .v2-app :is(.modal-backdrop,.v2-dialog-overlay){padding:12px;align-items:flex-end}
+ .v2-app :is(.modal,.v2-dialog){width:100%;max-width:100%;max-height:calc(100dvh - 24px);border-radius:20px;padding:24px 18px;padding-bottom:max(24px,env(safe-area-inset-bottom))}
+ .v2-app .goal-grid{grid-template-columns:minmax(0,1fr)}
+ .v2-app .notes-panel>.panel-top{align-items:flex-start;gap:12px;flex-wrap:wrap}
+ .v2-app .note-row{flex-wrap:wrap}
+ .v2-app .note-content{flex:1;min-width:calc(100% - 72px)}
+ .v2-app .note-row>.text-btn{margin-left:auto}
+ .v2-app :is(.document-options,.form-grid){grid-template-columns:minmax(0,1fr)}
+ .v2-app :is(.document-confirm,.daily-plan-filters,.document-generation){flex-wrap:wrap;gap:10px}
+ .v2-app .document-confirm button{flex:1;min-width:120px}
+ .v2-app .daily-plan-filters select{max-width:100%;min-width:0}
+}
+@media(prefers-reduced-motion:reduce){.v2-app button{transition:none}}
+
+/* Keep a small visible circle while leaving room for a finger to tap. */
+.v2-app :is(.notes-panel,.dashboard-note) .check-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;min-width:22px;min-height:22px;padding:0;border-radius:50%;flex:0 0 22px}
+.v2-app :is(.notes-panel,.dashboard-note) .check-btn::before{content:"";position:absolute;inset:-11px}
+.v2-app .note-row .check-btn{margin-top:0}
+
+/* Clear navigation, stable numbers and usable layouts on narrow screens. */
+.v2-mobile-brand{border:0;background:transparent;color:inherit;font:inherit;cursor:pointer;padding:0}
+.space-tabs{display:flex;gap:6px;flex-wrap:wrap;padding:6px;border:1px solid var(--v2-border);border-radius:14px;background:var(--v2-card);width:fit-content;max-width:100%}
+.space-tabs [role=tab]{border:1px solid transparent;border-radius:9px;padding:10px 18px;color:var(--v2-muted);background:transparent;cursor:pointer}
+.space-tabs [aria-selected=true]{background:var(--v2-accent);color:#171627;box-shadow:0 2px 8px #0002}
+.space-help{max-width:68ch;line-height:1.85;margin:14px 0 24px;color:var(--v2-muted)}
+.v2-app :is(.focus-orbit strong,.goal-amount,.forecast-stats strong,.v2-metrics strong){font-variant-numeric:tabular-nums}
+.v2-app .v2-error{overflow-wrap:anywhere;line-height:1.75}
+.v2-app .v2-error button{white-space:nowrap}
+.login-shell :is(button,input):focus-visible{outline:2px solid var(--v2-accent,#b9f778);outline-offset:3px}
+.login-shell button:disabled{opacity:.55;cursor:wait}
+@media(max-width:600px){
+ .space-tabs{width:100%;box-sizing:border-box;flex-wrap:nowrap}
+ .space-tabs [role=tab]{flex:1;padding:10px 6px;white-space:nowrap}
+ .v2-app .focus-custom{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+ .v2-app .focus-custom label{min-width:0}
+ .v2-app .focus-custom input{width:100%;min-width:0;box-sizing:border-box}
+ .v2-app .focus-custom button{grid-column:1/-1}
+ .v2-app .focus-label-select select{max-width:100%;min-width:0}
+ .space-help{font-size:13px;margin-bottom:18px}
+}
+
+:root[data-theme] .space-tabs [role=tab][aria-selected=true]{color:#171627;background:var(--v2-accent)}
+
+/* Compact, searchable feature drawer and comfortable touch targets. */
+.feature-search{display:grid;gap:8px;font-size:14px}.feature-search input{width:100%;box-sizing:border-box;padding:12px;border:1px solid var(--v2-border);border-radius:12px;color:var(--v2-text);background:var(--v2-card);font:inherit}
+.v2-app .more-sheet{max-height:calc(100dvh - 32px);overflow-y:auto;overscroll-behavior:contain;padding-bottom:max(24px,env(safe-area-inset-bottom))}
+.v2-app .dashboard-note>div{flex:1;min-width:0}.v2-app .dashboard-note>.v2-text{min-height:44px;white-space:nowrap}
+
+.quick-note{padding:18px 22px;margin-bottom:20px}.quick-note>label{display:block;margin-bottom:10px;font-weight:600}.quick-note>div{display:flex;gap:10px}.quick-note input{flex:1;min-width:0;border:1px solid var(--v2-border);border-radius:10px;background:transparent;color:var(--v2-text);padding:10px 12px;font:inherit}.quick-note button{white-space:nowrap}
+
+@media(max-width:760px){:root[data-theme] .v2-app .v2-hero h1{font-size:26px;white-space:normal;overflow-wrap:anywhere;max-width:100%;letter-spacing:0}:root[data-theme] .v2-app .cosmic-hero-copy{max-width:100%}.v2-app .quick-note{margin-top:14px}}
+
+.task-quick-add,.task-search{display:grid;gap:10px;margin-bottom:18px}.task-quick-add>div{display:flex;gap:10px}.task-quick-add input{flex:1;min-width:0}.task-quick-add input,.task-search input{font:inherit;color:var(--v2-text);background:transparent;border:1px solid var(--v2-border);border-radius:10px;padding:12px;width:100%;box-sizing:border-box}.task-quick-add button{white-space:nowrap}

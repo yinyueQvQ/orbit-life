@@ -1,6 +1,6 @@
 {
   "name": "orbit-life",
-  "version": "2.5.0",
+  "version": "2.5.10",
   "private": true,
   "engines": {
     "node": ">=22.13.0"
@@ -15,7 +15,7 @@
     "build:local": "vite build --config vite.local.config.ts",
     "start:local": "node local/launcher.mjs",
     "build:android": "node scripts/build-android.mjs",
-    "test:domain": "node --test tests/finance-links.test.mjs tests/domain.test.mjs tests/android-archive.test.mjs tests/accounts.test.mjs tests/habit-focus.test.mjs tests/migration.test.mjs tests/plans-reminders.test.mjs tests/journal.test.mjs tests/media-vault.test.mjs",
+    "test:domain": "node --test tests/focus-clock.test.mjs tests/note-toggle.test.mjs tests/client-api.test.mjs tests/finance-links.test.mjs tests/domain.test.mjs tests/android-archive.test.mjs tests/accounts.test.mjs tests/habit-focus.test.mjs tests/migration.test.mjs tests/plans-reminders.test.mjs tests/journal.test.mjs tests/media-vault.test.mjs tests/usability.test.mjs tests/memos.test.mjs",
     "prebuild": "node scripts/prepare-pdf-assets.mjs",
     "prebuild:local": "node scripts/prepare-pdf-assets.mjs"
   },

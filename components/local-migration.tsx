@@ -4,7 +4,7 @@ import {Upload,X} from 'lucide-react';
 import {api} from '../client/api.mjs';
 import {uploadGuestImages} from '../client/images.mjs';
 import {migrationCounts,mergeLocalData} from '../shared/migration.mjs';
-const labels:Record<string,string>={habits:'习惯',checks:'打卡',transactions:'账目',goals:'目标',documentPlans:'PDF计划',notes:'备忘',focusSessions:'专注记录',journal:'灵感手记',journalReports:'阶段回顾'};
+const labels:Record<string,string>={habits:'习惯',checks:'打卡',transactions:'账目',goals:'目标',documentPlans:'PDF计划',notes:'待办',memos:'备忘录',focusSessions:'专注记录',journal:'灵感手记',journalReports:'阶段回顾'};
 export default function LocalMigration({session,onChange}:{session:any;onChange:()=>void}){
  const [preview,setPreview]=useState<any>(null),[busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');
  const local=typeof window!=='undefined'&&Boolean((window as any).__ORBIT_LOCAL__);

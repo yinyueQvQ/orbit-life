@@ -6,7 +6,7 @@ const persona=()=>`你是星轨 ORBIT 里的小宠物团团，一只温柔、活
 export function createWorkspace({load,save,complete,configured}){
  let busy=false,last=0;
  const out=(status,data)=>({status,data});
- const chatView=s=>({configured:configured(),provider:'DeepSeek',model:'deepseek-flash',messages:s.messages.slice(-60),pending:s.pending.filter(x=>x.expires>Date.now())});
+ const chatView=s=>({configured:configured(),provider:'DeepSeek',model:'deepseek-v4-pro',messages:s.messages.slice(-60),pending:s.pending.filter(x=>x.expires>Date.now())});
  return async function handle(path,method,b={}){
  try{const s=await load();
  if(path==='/api/journal/reflect'&&method==='POST'){if(!configured())return out(503,{error:'请先配置 DeepSeek 密钥；本机统计无需AI即可查看。'});if(busy)return out(429,{error:'正在生成回顾，请稍候'});busy=true;try{const report=await reflectJournal(complete,s,b.start,b.end);await save(applyChange(s,{action:'journalReport',report}));return out(200,{ok:true,report})}finally{busy=false}}
@@ -32,7 +32,7 @@ export function createWorkspace({load,save,complete,configured}){
  const messages=[{role:'system',content:persona()},...s.messages.slice(-12).map(({role,content})=>({role,content})),{role:'user',content:b.message.trim()}];
  const pending=[];let reply='';
  for(let round=0;round<4;round++){
- const result=await complete({model:'deepseek-flash',messages,tools,thinking:{type:'disabled'},max_tokens:1200,stream:false});
+ const result=await complete({model:'deepseek-v4-pro',messages,tools,thinking:{type:'disabled'},max_tokens:4096,stream:false});
  const message=result?.choices?.[0]?.message;if(!message)throw Error('服务商返回不完整，请重试');
  if(message.tool_calls?.length){
  messages.push({role:'assistant',content:message.content||null,tool_calls:message.tool_calls});

@@ -1,2 +1,26 @@
-'use client';import {useEffect,useState} from 'react';import {Sun,Sparkles} from 'lucide-react';
-export default function ThemeToggle(){const [theme,setTheme]=useState('cosmos');useEffect(()=>{const saved=localStorage.getItem('orbit.theme.v3')==='paper'?'paper':'cosmos';setTheme(saved);document.documentElement.dataset.theme=saved;(window as any).OrbitNative?.setAppearance?.(saved==='paper'?'paper':'night')},[]);function toggle(){const next=theme==='paper'?'cosmos':'paper';setTheme(next);localStorage.setItem('orbit.theme.v3',next);document.documentElement.dataset.theme=next;(window as any).OrbitNative?.setAppearance?.(next==='paper'?'paper':'night')}return <button className="v2-icon theme-toggle" aria-label={theme==='paper'?'切换星空模式':'切换纸感日间模式'} title={theme==='paper'?'星空模式':'纸感日间模式'} onClick={toggle}>{theme==='paper'?<Sparkles size={18}/>:<Sun size={18}/>}</button>}
+'use client';
+import {useEffect, useState} from 'react';
+import {Monitor, Sun, Sparkles} from 'lucide-react';
+import {readPreference, selectTheme, type Preference} from '../client/theme';
+
+export default function ThemeToggle() {
+  const [preference, setPreference] = useState(readPreference);
+  useEffect(() => {
+    const sync = () => setPreference(readPreference());
+    window.addEventListener('orbit:theme-changed', sync);
+    return () => window.removeEventListener('orbit:theme-changed', sync);
+  }, []);
+  const Icon = preference === 'system' ? Monitor : preference === 'paper' ? Sun : Sparkles;
+  return <label className="v2-icon theme-toggle" title="外观模式">
+    <Icon size={18} aria-hidden="true"/>
+    <select aria-label="外观模式" value={preference} onChange={event => {
+      const choice = event.target.value as Preference;
+      selectTheme(choice);
+      setPreference(choice);
+    }}>
+      <option value="system">跟随系统</option>
+      <option value="paper">纸感日间</option>
+      <option value="cosmos">星空夜间</option>
+    </select>
+  </label>;
+}

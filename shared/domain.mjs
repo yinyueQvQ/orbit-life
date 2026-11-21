@@ -1,7 +1,8 @@
 import {journalKinds} from './journal.mjs';
 import {validatePlan} from './plans.mjs';
+import {changeMemo,validateMemos} from './memos.mjs';
 export const beijingDay=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Shanghai'}).format(new Date());
-export function newState(){return {journal:[],journalReports:[],documentPlans:[],focusSessions:[],timerSettings:{minutes:25,breakMinutes:5},habits:[],checks:[],transactions:[],goals:[],notes:[],pending:[],messages:[],profile:{budget:300000,pet_name:'团团',feeds:0,focus:0},forecast:{salary:0,bonus:0,deductions:0,other:0,expenses:0,savingTarget:0,currentSavings:0}};}
+export function newState(){return {journal:[],journalReports:[],documentPlans:[],focusSessions:[],timerSettings:{minutes:25,breakMinutes:5},habits:[],checks:[],transactions:[],goals:[],notes:[],memos:[],pending:[],messages:[],profile:{budget:300000,pet_name:'团团',feeds:0,focus:0},forecast:{salary:0,bonus:0,deductions:0,other:0,expenses:0,savingTarget:0,currentSavings:0}};}
 const fail=s=>{throw Error(s)};
 const text=(v,n=120)=>typeof v==='string'&&v.trim()&&v.length<=n?v.trim():fail('请检查文字内容');
 const amount=(v,zero=false)=>Number.isSafeInteger(v)&&v>=(zero?0:1)&&v<=100000000?v:fail('金额须为有效的非负数（单位为分）');
@@ -11,6 +12,7 @@ export const actions=['journal','updateJournal','deleteJournal','journalReport',
 export function applyChange(previous,b,day=beijingDay()){
  const s=structuredClone(normalizeState(previous)),id=()=>crypto.randomUUID();
  switch(b.action){
+ case 'memo':case 'updateMemo':case 'deleteMemo':s.memos=changeMemo(s.memos,b);break;
  case 'journal':case 'updateJournal':{const old=b.action==='updateJournal'?lookup(s.journal,b.id):{id:id(),created:new Date().toISOString()};const d=date(b.date===undefined?old.date:b.date);if(d>day)fail('手记日期不能在未来');const kind=b.kind===undefined?old.kind:b.kind;if(!journalKinds.includes(kind))fail('手记类型无效');const tags=b.tags===undefined?(old.tags||[]):b.tags;if(!Array.isArray(tags)||tags.length>5||tags.some(t=>typeof t!=='string'||!t.trim()||t.length>20))fail('标签最多5个，每个20字以内');const images=b.images===undefined?(old.images||[]):b.images;if(!Array.isArray(images)||images.length>6||images.some(i=>typeof i!=='string'||!/^[-a-zA-Z0-9_]{8,80}$/.test(i)))fail('每条手记最多6张有效图片');const raw=b.content===undefined?old.content:b.content;if(typeof raw!=='string'||raw.length>4000||(!raw.trim()&&!images.length))fail('请写一点文字或添加一张图片');const item={...old,images:[...new Set(images)],date:d,kind,title:b.title===undefined?(old.title||''):(typeof b.title==='string'&&b.title.length<=80?b.title:fail('标题过长')),content:raw.trim(),tags:[...new Set(tags.map(t=>t.trim()))],updated:new Date().toISOString()};if(b.action==='journal')s.journal.unshift(item);else Object.assign(old,item);break;}
  case 'deleteJournal':lookup(s.journal,b.id);s.journal=s.journal.filter(e=>e.id!==b.id);break;
  case 'journalReport':{const report=b.report;if(!report||typeof report!=='object')fail('回顾格式无效');date(report.start);date(report.end);s.journalReports.push({id:id(),title:text(report.title,120),content:text(report.content,5000),start:report.start,end:report.end,sourceCount:Number.isInteger(report.sourceCount)?report.sourceCount:0,includedCount:Number.isInteger(report.includedCount)?report.includedCount:0,created:new Date().toISOString()});s.journalReports=s.journalReports.slice(-50);break;}
@@ -39,7 +41,7 @@ export function applyChange(previous,b,day=beijingDay()){
  case 'deleteNote':lookup(s.notes,b.id);s.notes=s.notes.filter(x=>x.id!==b.id);s.focusSessions.forEach(f=>{if(f.noteId===b.id)f.noteId=''});break;
  case 'forecast':{for(const k of Object.keys(s.forecast))if(b[k]!==undefined)s.forecast[k]=amount(b[k],true);break;}
  default:fail('不支持此操作');
- }if(['habit','updateHabit','journal','updateJournal'].includes(b.action)&&b.goalId!==undefined){if(b.goalId)lookup(s.goals,b.goalId);const list=b.action.toLowerCase().includes('habit')?s.habits:s.journal;const record=b.action.startsWith('update')?lookup(list,b.id):b.action==='habit'?list.at(-1):list[0];record.goalId=b.goalId||'';}return s;
+ }if(['goal','updateGoal'].includes(b.action)&&b.financeScope!==undefined){if(!['all','linked'].includes(b.financeScope))fail('财务联动方式无效');const g=b.action==='goal'?s.goals.at(-1):lookup(s.goals,b.id);g.financeScope=b.financeScope;}if(['goal','updateGoal','note','updateNote'].includes(b.action)&&b.group!==undefined){const list=b.action.toLowerCase().includes('goal')?s.goals:s.notes;const r=b.action.startsWith('update')?lookup(list,b.id):b.action==='goal'?list.at(-1):list[0];r.group=b.group?text(b.group,40):'';}if(['habit','updateHabit','journal','updateJournal'].includes(b.action)&&b.goalId!==undefined){if(b.goalId)lookup(s.goals,b.goalId);const list=b.action.toLowerCase().includes('habit')?s.habits:s.journal;const record=b.action.startsWith('update')?lookup(list,b.id):b.action==='habit'?list.at(-1):list[0];record.goalId=b.goalId||'';}return s;
 }
 export function forecastSummary(s){const f=s.forecast;const income=f.salary+f.bonus+f.other-f.deductions,available=income-f.expenses,gap=Math.max(0,f.savingTarget-available),next=new Date(beijingDay()+'T12:00:00');next.setDate(1);next.setMonth(next.getMonth()+1);return {month:next.toISOString().slice(0,7),income,expenses:f.expenses,available,target:f.savingTarget,gap,balance:f.currentSavings+available};}
 export function publicState(s){s=normalizeState(s);const {messages,pending,_applied,...rest}=s;return {...rest,forecastSummary:forecastSummary(s)};}
@@ -49,6 +51,7 @@ export function propose(s,change){if(!actions.includes(change.action))fail('不�
 
 export function validateBackup(s){
  if(!s||typeof s!=='object')fail('备份格式无效');
+ validateMemos(s.memos===undefined?[]:s.memos);
  const lists=['habits','checks','transactions','goals','notes','pending','messages'];if(!lists.every(k=>Array.isArray(s[k])&&s[k].length<=50000)||!s.profile||!s.forecast)fail('备份格式无效');
  if(!Array.isArray(s.journal)||s.journal.length>10000||!Array.isArray(s.journalReports)||s.journalReports.length>50)fail('手记备份无效');for(const e of s.journal){if(!e||typeof e.id!=='string'||!journalKinds.includes(e.kind)||!Array.isArray(e.tags)||e.tags.length>5||e.tags.some(t=>typeof t!=='string'||t.length>20))fail('手记内容无效');date(e.date);if(typeof e.content!=='string'||e.content.length>4000||(!e.content.trim()&&!e.images?.length))fail('手记内容无效');if(e.images&&(!Array.isArray(e.images)||e.images.length>6||e.images.some(i=>typeof i!=='string'||!/^[-a-zA-Z0-9_]{8,80}$/.test(i))))fail('图片关联无效');if(typeof e.title!=='string'||e.title.length>80)fail('手记标题无效');}for(const r of s.journalReports){if(!r||typeof r.id!=='string')fail('回顾编号无效');text(r.title,120);text(r.content,5000);date(r.start);date(r.end);}
  if(!Array.isArray(s.documentPlans)||s.documentPlans.length>5000)fail('文档计划格式无效');for(const p of s.documentPlans){if(!p||typeof p.id!=='string'||!p.id||p.id.length>120)fail('计划编号无效');text(p.title,80);date(p.start);date(p.end);if(p.goalId&&!s.goals.some(g=>g.id===p.goalId))fail('计划目标关联无效');}
@@ -56,8 +59,9 @@ export function validateBackup(s){
  const ids=new Set();for(const name of ['habits','goals','notes','transactions'])for(const item of s[name]){if(!item||typeof item.id!=='string'||!item.id||item.id.length>120||ids.has(item.id))fail('备份记录ID无效');ids.add(item.id);}
  for(const h of s.habits){text(h.name,80);text(h.goal,80);text(h.icon,10);if(!['健康','学习','生活'].includes(h.category))fail('习惯分类无效');date(h.created);}
  for(const t of s.transactions){if(t.goalId&&!s.goals.some(g=>g.id===t.goalId))fail('账目目标关联无效');amount(t.amount);date(t.date);text(t.category,30);if(!['income','expense'].includes(t.kind)||typeof t.note!=='string'||t.note.length>120)fail('账目格式无效');}
- for(const c of s.checks){if(!c||!s.habits.some(h=>h.id===c.habit))fail('打卡关联无效');date(c.date);}
- for(const g of s.goals){text(g.title,80);amount(g.target,true);amount(g.saved,true);date(g.deadline,true);if(typeof g.done!=='boolean')fail('目标格式无效');}
+ const habitIds=new Set(s.habits.map(h=>h.id));
+ for(const c of s.checks){if(!c||!habitIds.has(c.habit))fail('打卡关联无效');date(c.date);}
+ for(const r of [...s.goals,...s.notes])if(r.group!==undefined&&r.group!=='')text(r.group,40);for(const g of s.goals){if(g.financeScope!==undefined&&!['all','linked'].includes(g.financeScope))fail('财务联动方式无效');text(g.title,80);amount(g.target,true);amount(g.saved,true);date(g.deadline,true);if(typeof g.done!=='boolean')fail('目标格式无效');}
  for(const n of s.notes){text(n.title,120);if(typeof n.content!=='string'||n.content.length>2000||typeof n.done!=='boolean')fail('备忘格式无效');date(n.due,true);if(n.goalId&&!s.goals.some(g=>g.id===n.goalId))fail('备忘关联无效');}
  amount(s.profile.budget);for(const key of ['feeds','focus'])if(!Number.isSafeInteger(s.profile[key])||s.profile[key]<0)fail('伙伴数据无效');
  for(const k of Object.keys(newState().forecast))amount(s.forecast[k],true);
@@ -67,4 +71,4 @@ export function validateBackup(s){
 
 export function normalizeState(value={}){const base=newState();return {...base,...value,profile:{...base.profile,...value.profile},forecast:{...base.forecast,...value.forecast},timerSettings:{...base.timerSettings,...value.timerSettings},focusSessions:value.focusSessions||[],habits:(value.habits||[]).map(h=>({...h,days:h.days||[0,1,2,3,4,5,6],archived:Boolean(h.archived)})),checks:(value.checks||[]).map(c=>({...c,note:c.note||''}))};}
 
-export function goalSavings(s,g){return g.saved+(s.transactions||[]).filter(t=>t.goalId===g.id).reduce((sum,t)=>sum+(t.kind==='income'?t.amount:-t.amount),0)}
+export function goalSavings(s,g){return g.saved+(s.transactions||[]).filter(t=>g.financeScope!=='linked'||t.goalId===g.id).reduce((sum,t)=>sum+(t.kind==='income'?t.amount:-t.amount),0)}
