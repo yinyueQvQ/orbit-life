@@ -6,3 +6,29 @@ test('goal deletion preserves its notes and removes their association',()=>{let 
 test('AI proposes changes without writing; confirmation executes once',async()=>{let state=newState(),calls=0;const handle=createWorkspace({load:()=>structuredClone(state),save:x=>state=x,configured:()=>true,complete:async()=>{calls++;if(calls===1)return {choices:[{message:{tool_calls:[{id:'a',type:'function',function:{name:'read_workspace',arguments:'{"scope":"goals"}'}}]}}]};if(calls===2)return {choices:[{message:{tool_calls:[{id:'b',type:'function',function:{name:'propose_change',arguments:JSON.stringify({action:'note',title:'验收备忘',content:'测试'})}}]}}]};return {choices:[{message:{content:'请确认这项建议。'}}]};}});let r=await handle('/api/chat','POST',{message:'帮我记个备忘'});assert.equal(r.status,200);assert.equal(state.notes.length,0);assert.equal(state.pending.length,1);const id=state.pending[0].id;r=await handle('/api/chat/actions','POST',{id,accept:true});assert.equal(r.status,200);assert.equal(state.notes.length,1);assert.equal(state.pending.length,0);assert.equal((await handle('/api/chat/actions','POST',{id,accept:true})).status,404);assert.equal((await handle('/api/life','POST',{action:'shell',command:'bad'})).status,400);});
 test('failed AI calls do not fabricate history or alter workspace data',async()=>{let state=newState();const before=JSON.stringify(state);const h=createWorkspace({load:()=>structuredClone(state),save:x=>state=x,configured:()=>true,complete:async()=>{throw Error('测试网络失败')}});assert.equal((await h('/api/chat','POST',{message:'你好'})).status,400);assert.equal(JSON.stringify(state),before);});
 test('backup validation rejects malformed records, accepts personal state and removes pending actions',()=>{const s=newState();assert.deepEqual(validateBackup(s),s);assert.throws(()=>validateBackup({...s,notes:[null]}));assert.throws(()=>validateBackup({...s,forecast:{salary:'not money'}}));assert.equal(validateBackup({...s,pending:[{id:'old'}]}).pending.length,0);});
+
+test('one AI confirmation commits a whole turn or leaves every operation unapplied',async()=>{
+ let state=applyChange(newState(),{action:'note',title:'Existing'});
+ const target=state.notes[0].id;
+ let call=0;
+ const tool=(id,change)=>({id,type:'function',function:{name:'propose_change',arguments:JSON.stringify(change)}});
+ const handle=createWorkspace({load:()=>structuredClone(state),save:next=>{state=next},configured:()=>true,complete:async()=>({choices:[{message:call++===0?{tool_calls:[
+  tool('add',{action:'note',title:'Added'}),
+  tool('mark',{action:'updateNote',id:target,done:true})
+ ]}:{content:'Ready'}}]})});
+ const result=await handle('/api/chat','POST',{message:'Add a task and check off the existing one'});
+ assert.equal(result.status,200);
+ assert.equal(state.notes.length,1);
+ const [{batchId},second]=state.pending;
+ assert.equal(second.batchId,batchId);
+ const before=structuredClone(state);
+ state=applyChange(state,{action:'deleteNote',id:target});
+ assert.equal((await handle('/api/chat/actions','POST',{id:batchId,accept:true})).status,400);
+ assert.equal(state.notes.length,0);
+ assert.equal(state.pending.length,2);
+ state=before;
+ assert.equal((await handle('/api/chat/actions','POST',{id:batchId,accept:true})).status,200);
+ assert.equal(state.notes.length,2);
+ assert.equal(state.notes.find(note=>note.id===target).done,true);
+ assert.equal((await handle('/api/chat/actions','POST',{id:batchId,accept:true})).status,404);
+});

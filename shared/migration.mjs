@@ -1,5 +1,7 @@
 import {normalizeState,validateBackup} from './domain.mjs';
-const lists=['habits','checks','transactions','goals','documentPlans','notes','focusSessions','journal','journalReports'];
+const lists=['habits','checks','transactions','goals','documentPlans','notes','memos','focusSessions','journal','journalReports'];
+const sharedIdLists=new Set(['habits','goals','notes','transactions']);
+const checkKey=({habit,date})=>JSON.stringify([habit,date]);
 export function migrationCounts(state){return Object.fromEntries(lists.map(k=>[k,state[k]?.length||0]));}
 export function mergeLocalData(current,incoming){
  const target=structuredClone(normalizeState(current));
@@ -7,14 +9,18 @@ export function mergeLocalData(current,incoming){
  if(!Array.isArray(source.focusSessions)||source.focusSessions.length>50000)throw Error('专注记录格式无效');
  for(const s of source.focusSessions)if(!s||typeof s.id!=='string'||!s.id||s.id.length>120||!Number.isInteger(s.minutes)||s.minutes<1||s.minutes>720||typeof s.label!=='string'||s.label.length>120||!/^\d{4}-\d{2}-\d{2}$/.test(s.date))throw Error('专注记录格式无效');
  const added=Object.fromEntries(lists.map(k=>[k,0]));
+ const checkKeys=new Set(target.checks.map(checkKey));
+ const idOwners=new Map([...sharedIdLists].flatMap(key=>target[key].map(item=>[item.id,key])));
  for(const key of lists){
   const ids=new Set(target[key].map(x=>x.id));
   for(const item of source[key]){
    if(ids.has(item.id))continue;if(key==='journalReports'&&target.journalReports.length>=50)continue;
-   if(key==='checks'&&target.checks.some(x=>x.habit===item.habit&&x.date===item.date))continue;
+   if(key==='checks'&&checkKeys.has(checkKey(item)))continue;
    // Preserve cloud records on ID collision; importing never edits existing data.
-   if(['habits','goals','notes','transactions'].includes(key)&&['habits','goals','notes','transactions'].some(k=>k!==key&&target[k].some(x=>x.id===item.id)))throw Error('记录编号冲突，请先分别导出备份');
+   if(sharedIdLists.has(key)&&idOwners.has(item.id)&&idOwners.get(item.id)!==key)throw Error('记录编号冲突，请先分别导出备份');
    target[key].push(structuredClone(item));ids.add(item.id);added[key]++;
+   if(key==='checks')checkKeys.add(checkKey(item));
+   if(sharedIdLists.has(key))idOwners.set(item.id,key);
    if(key==='focusSessions')target.profile.focus+=item.minutes;
   }
  }

@@ -1,0 +1,173 @@
+/* Observatory — deep space, silver light, quiet surfaces. */
+:root[data-theme=cosmos]{--v2-bg:#070912;--v2-card:#101420;--v2-border:#aebcdd24;--v2-text:#edf0fa;--v2-muted:#a0abc3;--v2-accent:#c7bbff;--accent:#c7bbff}
+:root[data-theme=cosmos] body{background:#070912;font-family:'Orbit Sans','Microsoft YaHei',sans-serif;font-size:16px;line-height:1.75}
+:root[data-theme=cosmos] :is(button,input,select,textarea){font-family:inherit}
+:root[data-theme=cosmos] :is(h1,h2,h3){font-family:'Orbit Sans','Microsoft YaHei',sans-serif;font-weight:600}
+:root[data-theme=cosmos] ::selection{background:#a998ef50;color:#fff}
+:root[data-theme=cosmos] .cosmos-sky{background:radial-gradient(ellipse at 78% 0%,#29213e65,transparent 48%),radial-gradient(ellipse at 25% 95%,#12304945,transparent 55%),#070912}
+.cosmos-sky:after{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,#b8c9ee 0.6px,transparent .9px),radial-gradient(circle,#c7b9ee 0.5px,transparent .8px);background-position:17px 39px,83px 111px;background-size:137px 157px,211px 229px;opacity:.25}
+:root[data-theme=cosmos] .v2-sidebar{background:linear-gradient(180deg,#0c101bf5,#090d16f7);border-right-color:#b4c2e21a;padding:30px 18px}
+:root[data-theme=cosmos] .v2-logo b{font-weight:400;letter-spacing:6px}
+:root[data-theme=cosmos] .v2-space{border-radius:12px;background:#a4b2dd06;border-color:#b8c5ec18}
+:root[data-theme=cosmos] .v2-side-nav button{border-radius:8px;min-height:44px}
+:root[data-theme=cosmos] .v2-side-nav button[data-active=true]{background:linear-gradient(90deg,#c4b5fd19,#c4b5fd03);border-color:#c4b5fd24;box-shadow:inset 2px 0 #c9bcff;color:#e3dcff}
+:root[data-theme=cosmos] .nav-group-label{letter-spacing:2px;color:#7c89a5;font-size:10px}
+:root[data-theme=cosmos] .v2-topbar{height:76px;background:#090d16b8;border-bottom-color:#b4c2e212}
+:root[data-theme=cosmos] .v2-content{max-width:1536px;padding:32px 44px 0}
+:root[data-theme=cosmos] .v2-eyebrow{font-family:'Times New Roman',serif;letter-spacing:3px;color:#b2b5d1;font-size:10px}
+:root[data-theme=cosmos] .v2-page-heading h1{font-size:32px;letter-spacing:1px}
+:root[data-theme=cosmos] :is(.v2-card,.v2-habit-card,.journal-entry,.v2-records){border:1px solid #b6c2df20;border-radius:16px;background:linear-gradient(145deg,#151b2ae8,#0e131feF);box-shadow:inset 0 1px #ffffff04,0 12px 32px #00000016}
+:root[data-theme=cosmos] .v2-card{padding:25px 27px}
+:root[data-theme=cosmos] .v2-card h2{letter-spacing:.6px}
+:root[data-theme=cosmos] .v2-hero{min-height:365px;padding:46px 42px;border-radius:20px;border-color:#c9baff32;background:radial-gradient(ellipse at 78% 45%,#61518628,transparent 48%),radial-gradient(ellipse at 15% 100%,#193c4b38,transparent 60%),linear-gradient(115deg,#111525,#10121f 65%,#17182b);box-shadow:inset 0 1px #ffffff0c,0 24px 70px #00000028}
+:root[data-theme=cosmos] .v2-hero:before{background-size:79px 97px;opacity:.28}
+:root[data-theme=cosmos] .v2-hero h1{font-size:clamp(28px,2.8vw,43px);line-height:1.5;letter-spacing:1px;margin-top:20px;font-weight:400}
+:root[data-theme=cosmos] .v2-hero h1 em{color:#d1c6f5}
+:root[data-theme=cosmos] .v2-hero p{font-size:13px;color:#a6b0c6;line-height:2}
+:root[data-theme=cosmos] .v2-hero-link{background:#e9e5ff;color:#171627;border:1px solid #fff8;border-radius:8px;padding:11px 18px;box-shadow:0 4px 24px #b5a3f01a;transition:background .2s,transform .2s}
+:root[data-theme=cosmos] .v2-hero-link:hover{background:#fff;transform:translateY(-2px)}
+:root[data-theme=cosmos] .v2-hero .cosmic-planet{right:6%;top:12px;transform:scale(1.15)}
+:root[data-theme=cosmos] .planet-sphere{background:radial-gradient(ellipse at 25% 20%,#fff1da9c,transparent 45%),repeating-linear-gradient(168deg,#72748e 0%,#b3a9ba 6%,#8e839e 9%,#c6b6bc 14%,#64657f 19%);box-shadow:inset -40px -22px 45px #080a1e,inset 4px 3px 10px #f5e5ff88,0 0 2px #e6d5ff88,0 0 65px #b2a0e51c}
+:root[data-theme=cosmos] .planet-orbit{border-color:#d0c3f02c}
+:root[data-theme=cosmos] .planet-ring{border-top-color:#ddcfe2a0;border-bottom-color:#8b8aa099;border-left-color:#b6adc58a;border-right-color:#b6adc58a}
+:root[data-theme=cosmos] .v2-hero-ring{right:28px;bottom:24px;background:#0b101bd9;border-color:#c5c0e527;box-shadow:none;width:100px;height:100px}
+:root[data-theme=cosmos] .v2-hero-ring svg{width:100px;height:100px}
+:root[data-theme=cosmos] .v2-hero-ring strong{font-variant-numeric:tabular-nums;font-weight:400}
+:root[data-theme=cosmos] .cosmic-shortcuts{gap:16px;margin-top:16px}
+:root[data-theme=cosmos] .cosmic-shortcuts>button{border:1px solid #b6c2df20;border-radius:12px;background:#101622c9;padding:19px 22px;transition:border-color .2s,background .2s}
+:root[data-theme=cosmos] .cosmic-shortcuts>button:hover{border-color:#c5b6fd55;background:#191e30}
+:root[data-theme=cosmos] .cosmic-shortcuts>button>span{background:#c4b5fd0d;color:#cec1fc;border:1px solid #c4b5fd20;border-radius:10px}
+:root[data-theme=cosmos] .cosmic-shortcuts strong{font-weight:400;letter-spacing:.5px}
+:root[data-theme=cosmos] .v2-metrics{gap:16px}
+:root[data-theme=cosmos] .v2-metrics .v2-card{position:relative;overflow:hidden;padding:23px 25px}
+:root[data-theme=cosmos] .v2-metrics .v2-card:after{content:'';position:absolute;bottom:0;left:25px;right:25px;height:1px;background:linear-gradient(90deg,#bcadf555,transparent)}
+:root[data-theme=cosmos] .v2-metrics strong{font-family:'Times New Roman','SimSun',serif;font-weight:400;font-size:34px;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+:root[data-theme=cosmos] .v2-primary{background:linear-gradient(115deg,#ded5fb,#babce9);color:#151627;border-color:#ece6ff80;border-radius:8px;box-shadow:0 5px 20px #b4a1ed14}
+:root[data-theme=cosmos] .v2-secondary{border-radius:8px;background:#bdc4ef06;border-color:#b7c2e52c}
+:root[data-theme=cosmos] :is(input,textarea,select){border-radius:8px;border-color:#b4c1df2b;background-color:#090e19;color:#e3e9f5;accent-color:#c7bbff}
+:root[data-theme=cosmos] :is(button,a,input,textarea,select):focus-visible{outline:2px solid #cbbfff;outline-offset:4px}
+:root[data-theme=cosmos] .v2-footer{color:#7e8aa6;border-top:1px solid #aabbdd13;margin-top:36px;padding-top:22px;font-size:11px;letter-spacing:1px}
+:root[data-theme=cosmos] .login-shell{background:transparent;font-family:'Orbit Sans','Microsoft YaHei',sans-serif}
+:root[data-theme=cosmos] .login-story h1{font-weight:400;letter-spacing:2px}
+:root[data-theme=cosmos] .login-card{background:linear-gradient(145deg,#171d2beF,#0d121ff5);border:1px solid #c3c2e42b;border-radius:20px;box-shadow:0 30px 100px #0005,inset 0 1px #ffffff08}
+:root[data-theme=cosmos] .login-card h2{font-weight:400;letter-spacing:2px}
+@media(min-width:1600px){:root[data-theme=cosmos] .v2-content{padding-top:44px}:root[data-theme=cosmos] .v2-hero{min-height:400px}}
+@media(max-width:1100px){:root[data-theme=cosmos] .v2-content{padding:28px 24px 0}:root[data-theme=cosmos] .v2-hero{padding:32px;min-height:340px}:root[data-theme=cosmos] .v2-hero .cosmic-planet{right:-4%;transform:scale(.95)}}
+@media(max-width:760px){
+ :root[data-theme=cosmos] .v2-main{margin-left:0}
+ :root[data-theme=cosmos] .v2-content{padding:18px 16px 112px}
+ :root[data-theme=cosmos] .v2-topbar{height:64px;background:#0b101bef}
+ :root[data-theme=cosmos] .v2-hero{min-height:385px;padding:27px 24px;align-items:flex-start;border-radius:16px}
+ :root[data-theme=cosmos] .cosmic-hero-copy{max-width:100%}
+ :root[data-theme=cosmos] .v2-hero h1{font-size:28px;line-height:1.55;margin-top:16px}
+ :root[data-theme=cosmos] .v2-hero p{font-size:12px;max-width:240px}
+ :root[data-theme=cosmos] .v2-hero-link{margin-top:18px;position:relative;z-index:4}
+ :root[data-theme=cosmos] .v2-hero .cosmic-planet{top:auto;bottom:-40px;right:-85px;transform:scale(.67);transform-origin:center;opacity:.8}
+ :root[data-theme=cosmos] .v2-hero-ring{right:auto;left:24px;bottom:18px;width:74px;height:74px;background:#0c1120}
+ :root[data-theme=cosmos] .v2-hero-ring svg{width:74px;height:74px}
+ :root[data-theme=cosmos] .v2-hero-ring strong{font-size:21px}
+ :root[data-theme=cosmos] .v2-hero-ring small{font-size:7px}
+ :root[data-theme=cosmos] .v2-hero-ring span{display:none}
+ :root[data-theme=cosmos] .cosmic-shortcuts{gap:10px}
+ :root[data-theme=cosmos] .cosmic-shortcuts>button{padding:15px 12px;gap:9px}
+ :root[data-theme=cosmos] .cosmic-shortcuts strong{font-size:12px}
+ :root[data-theme=cosmos] .cosmic-shortcuts small{font-size:10px}
+ :root[data-theme=cosmos] .v2-metrics{gap:10px}
+ :root[data-theme=cosmos] .v2-metrics .v2-card{padding:18px 16px}
+ :root[data-theme=cosmos] .v2-metrics strong{font-size:29px}
+ :root[data-theme=cosmos] .v2-card{padding:21px 19px;border-radius:14px}
+ :root[data-theme=cosmos] .v2-bottom-nav{background:#0c111ef5;border-top:1px solid #c4b5fd26}
+
+}
+@media(prefers-reduced-motion:reduce){.cosmos-sky *{animation:none!important}:root[data-theme=cosmos] :is(button,.v2-card){transition:none!important;transform:none}}
+
+/* Readability takes precedence over decorative typography, including on WebView. */
+:root[data-theme=cosmos]{--v2-muted:#bdc8df;--muted:#bdc8df;--v2-text:#f3f5ff}
+:root[data-theme=cosmos] :is(.v2-app,.login-shell){color:#f3f5ff;font-weight:450}
+:root[data-theme=cosmos] :is(.v2-app,.login-shell) :is(p,label,small){font-size:14px;line-height:1.8}
+:root[data-theme=cosmos] :is(.v2-muted,.v2-page-heading p,.v2-hero p,.login-card>p,.v2-footer,.space-help){color:#bdc8df;opacity:1}
+:root[data-theme=cosmos] :is(.v2-card,.v2-habit-card,.journal-entry,.v2-records){background:linear-gradient(145deg,#151b2a,#0e131f)}
+:root[data-theme=cosmos] :is(.v2-card,.v2-habit-card,.journal-entry) :is(small,time){color:#bdc8df;opacity:1;font-size:13px}
+:root[data-theme=cosmos] :is(.v2-side-nav button,.v2-side-bottom>button,.v2-secondary,.v2-text,.v2-quiet,.space-tabs button){font-size:15px;color:#dce3f3;font-weight:500}
+:root[data-theme=cosmos] :is(.v2-form label,.focus-custom>label,.focus-label-select,.focus-footnote,.focus-totals>p,.journal-entry>p,.journal-ai p){color:#c4cee3;font-size:14px;opacity:1}
+:root[data-theme=cosmos] :is(input,textarea,select){font-size:16px;line-height:1.6;color:#f3f5ff}
+:root[data-theme=cosmos] ::placeholder{color:#aebbd3;opacity:1}
+:root[data-theme=cosmos] :is(.v2-primary,.v2-hero-link){font-size:15px;font-weight:600;color:#151627}
+:root[data-theme=cosmos] :is(.v2-hero h1,.login-story h1,.login-card h2){font-weight:600}
+:root[data-theme=cosmos] .v2-hero p{font-size:15px}
+:root[data-theme=cosmos] .v2-eyebrow{font-family:'Orbit Sans',sans-serif;font-size:11px;color:#c6cce1;letter-spacing:1.5px}
+:root[data-theme=cosmos] .cosmic-shortcuts strong{font-size:15px;font-weight:550;color:#edf0ff}
+:root[data-theme=cosmos] .cosmic-shortcuts small{font-size:13px;color:#bdc8df}
+:root[data-theme=cosmos] .v2-metrics>.v2-card>span{font-size:14px;color:#c4cee3}
+:root[data-theme=cosmos] .v2-metrics strong{font-family:'Orbit Sans',sans-serif;font-weight:550}
+:root[data-theme=cosmos] .today-habits .habit-section>button :is(strong,em){font-size:14px;opacity:1}
+:root[data-theme=cosmos] .v2-app :is(.v2-empty p,.v2-empty h3,.v2-filter-chips button,.v2-week-select button,.v2-tabs button,.v2-pill){color:#d1daed;opacity:1}
+:root[data-theme=cosmos] .v2-app :is(.v2-filter-chips button,.v2-tabs button,.v2-pill){font-size:14px;line-height:1.6}
+:root[data-theme=cosmos] .v2-app :is(.v2-filter-chips button,.v2-tabs button)[data-active=true]{color:#f3edff;background:#c7bbff20;border-color:#c7bbff66}
+@media(max-width:760px){
+ :root[data-theme=cosmos] .v2-hero{min-height:460px}
+ :root[data-theme=cosmos] .v2-hero h1{font-size:26px;letter-spacing:0;line-height:1.6}
+ :root[data-theme=cosmos] .v2-hero p{font-size:14px;max-width:100%}
+ :root[data-theme=cosmos] .v2-hero>.cosmic-planet{top:auto;bottom:-30px;opacity:.65}
+ :root[data-theme=cosmos] .v2-hero>.v2-hero-ring{width:100px;height:100px;bottom:18px}
+ :root[data-theme=cosmos] .v2-hero-ring svg{width:100px;height:100px}
+ :root[data-theme=cosmos] .v2-hero-ring small{font-size:11px;line-height:1.5;color:#d1daed}
+ :root[data-theme=cosmos] .v2-hero-ring strong{font-family:'Orbit Sans',sans-serif;font-size:25px;font-weight:600}
+ :root[data-theme=cosmos] .v2-page-heading p{font-size:14px}
+ :root[data-theme=cosmos] .cosmic-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr))}
+ :root[data-theme=cosmos] .cosmic-shortcuts>button{flex-direction:row;align-items:center;min-width:0}
+ :root[data-theme=cosmos] .cosmic-shortcuts strong{font-size:14px;letter-spacing:0}
+
+ :root[data-theme=cosmos] .v2-bottom-nav>button{color:#c2cde5}
+ :root[data-theme=cosmos] .v2-bottom-nav>button>span{font-size:13px;font-weight:550}
+ :root[data-theme=cosmos] .v2-metrics>.v2-card>span{font-size:13px}
+}
+
+/* Contour lines travel across the hero behind the daily progress dial. */
+.v2-dashboard .v2-hero { isolation:isolate }
+.hero-tides {
+  position:absolute; inset:0; overflow:hidden; z-index:-1; pointer-events:none;
+  --tide-line:#89e8ef55; --tide-glow:#6679e730;
+  background:radial-gradient(ellipse at 82% 72%,var(--tide-glow),transparent 68%);
+}
+[data-theme=paper] .hero-tides { --tide-line:#346d9460; --tide-glow:#e4be7e55 }
+.hero-tides i {
+  position:absolute; left:16%; top:30%; width:115%; height:125%;
+  border-radius:50%; border:1px solid var(--tide-line);
+  background:linear-gradient(175deg,var(--tide-glow),transparent 36%);
+  transform:rotate(-15deg); transform-origin:65% 45%;
+}
+.hero-tides i:nth-child(2) { top:40%; animation-delay:-6s }
+.hero-tides i:nth-child(3) { top:50%; animation-delay:-12s }
+@media(prefers-reduced-motion:no-preference) {
+  .hero-tides i { animation-name:orbit-tide; animation-duration:18s; animation-timing-function:ease-in-out; animation-iteration-count:infinite; animation-direction:alternate }
+  .motion-paused .hero-tides i { animation-play-state:paused }
+  @keyframes orbit-tide { to { transform:translate(3%,-5%) rotate(-9deg) } }
+}
+.login-card > .theme-toggle { float:right; margin-inline-start:12px }
+:root[data-theme=paper] .launch-screen {
+  color:#293951;
+  background:radial-gradient(ellipse at 60% 36%,#f7e7cf,transparent 58%),#edf2f7;
+}
+:root[data-theme=paper] .launch-screen :is(p,small,h1,h1 span) { color:#465574 }
+:root[data-theme=paper] .v2-hero-link {
+  background:#344d60; color:#fff; border-radius:8px; padding:10px 16px;
+}
+:root[data-theme=paper] .v2-hero-ring { border-radius:50%; color:#394d60; opacity:1 }
+@media(min-width:1001px) {
+  .v2-sidebar > .v2-logo {
+    display:grid; grid-template-columns:auto 1fr; align-items:center;
+    column-gap:9px; row-gap:0; padding-block:4px 18px;
+  }
+  .v2-sidebar > .v2-logo small {
+    position:static; grid-column:2; line-height:1.5; letter-spacing:0; white-space:nowrap;
+  }
+}
+.theme-toggle { position:relative; display:inline-grid; place-items:center }
+.theme-toggle select { position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer }
+.theme-toggle:focus-within { outline:2px solid currentColor; outline-offset:3px }
+
+@media (min-width:761px) {
+  .v2-app .v2-sidebar { overflow:hidden }
+  .v2-app .v2-side-nav { min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:4px }
+}

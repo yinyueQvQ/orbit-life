@@ -1,0 +1,18 @@
+.memo-space{display:grid;gap:16px;min-width:0}
+.memo-row,.memo-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.memo-row{justify-content:space-between}
+.space-tabs.memo-tabs{display:flex;flex-wrap:wrap;margin:0}
+.v2-app .memo-tabs button[aria-pressed=true]{background:var(--v2-accent);color:#171627;border-color:transparent}
+.memo-filters{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:12px;margin:16px 0 0}
+.memo-filters :is(input,select){min-width:0;width:100%;box-sizing:border-box}
+.memo-hint{margin:12px 0 0}
+.memo-feedback{margin:0;color:var(--v2-accent,inherit)}
+.memo-feedback:empty{margin-bottom:-16px}
+.memo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:14px;align-items:start}
+.memo-card{display:grid;gap:12px;min-width:0;overflow-wrap:anywhere}
+.memo-card h2,.memo-content{margin:0}
+.memo-content{white-space:pre-wrap;user-select:text}
+.memo-pin{display:inline-flex;align-items:center;gap:4px;color:var(--v2-accent,inherit)}
+.memo-actions button{min-height:36px}
+.memo-delete-summary{overflow-wrap:anywhere}
+@media(max-width:430px){.memo-filters{grid-template-columns:1fr}.memo-tabs button{padding-inline:12px}}

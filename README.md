@@ -1,93 +1,92 @@
-# 星轨 ORBIT 2.4
+# 星轨 ORBIT
 
-## 2.4 启动与互动
+**打开就知道今天该做什么，做完就能看到自己的进度。**
 
-新增团团启动页、页面切换与导航反馈；团团会漂浮、眨眼，触摸和投喂时跳跃回应。桌面导航按日常、生活规划、成长与陪伴分组，账号统一放在底部；手机探索页集中收纳其他栏目。移除首页重复标题和重复团团入口。支持减少动态效果，切到后台时暂停动画。
+星轨是一个中文日常管理工具。从「今天」查看待办和习惯打卡，从一条任务直接开始专注。临时想法可以随手记，长期目标可以拆成小步骤，每天推进一点。
 
-习惯打卡、收支账本、目标备忘、收入储蓄规划、自定义专注与 AI 伙伴「团团」。
+![星轨「今天」页面。左侧是功能导航，紫蓝色行星横幅下是待办列表和今日打卡进度。](docs/images/orbit-today.png)
 
-## 2.3 星空界面
+*截图使用示例数据。星轨支持纸感浅色和星空深色外观。*
 
-重做首页布局：CSS立体星体、行星环、轨道进度、轻量星野、星云及低频流星。新增快捷入口、透光卡片边缘、悬浮反馈，统一手机导航、随心记、专注及登录页。默认星空，保留纸感模式。尊重系统减少动态效果，后台暂停星空动画；无在线视频或图片依赖。
+[在线试用](https://orbit-life-production.up.railway.app/) · [查看历史安装包](https://github.com/yinyueQvQ/orbit-life/releases) · [反馈问题或参与维护](https://github.com/yinyueQvQ/orbit-life/issues)
 
-视觉参考：https://dribbble.com/search/space-dashboard 与 https://science.nasa.gov/gallery/our-solar-system-images/ ，星体由原创 CSS 绘制，未复制第三方素材。
+## 星轨可以做什么
 
-## 2.2 新功能
+| 想做的事 | 在哪里完成 |
+| --- | --- |
+| 安排今天 | 在「今天」快速添加待办、完成习惯打卡，点一条任务进入专注计时。 |
+| 推进长期目标 | 把目标拆成带截止日期的待办，查看步骤和完成进度。 |
+| 留下想法和见闻 | 备忘录收纳短句和素材，随心记支持图文记录与阶段回顾。 |
+| 管理收支 | 财务空间集中查看实际收支、储蓄目标和下月规划。 |
+| 把文档变成行动 | 导入带文字层的 PDF，生成可编辑的每日计划，确认后写入待办。 |
 
-- Railway 独立部署：https://orbit-life-production.up.railway.app ，注册星轨账号即可登录，无需 GPT。数据库及图片存放在 Railway /data 持久卷，重新部署保留数据。
-- 随心记每篇最多6张图片，设备压缩、移除元数据后上传；账号之间隔离。支持纯图片记录、放大查看和含图片备份、本机数据可选迁移。AI只读文字，不自动发送照片。
-- 新增纸感浅色界面与夜间切换，随心记把记录和阶段回顾分开。
-- 网页账号页支持配置 DeepSeek 密钥，服务端 AES-256-GCM 加密保存，不提供密钥读取接口。
+本机体验无需注册，记录可以导出备份。需要跨设备使用时，可以登录同一个星轨账号。登录后可预览并选择是否迁移本机记录。
 
-## 2.1 功能
+## 快速开始
 
-- 安卓系统栏：Android 11+ 统一在原生根布局处理状态栏、导航栏、刘海及键盘 Insets，避免页面遮住系统时间与电量；保留旧系统默认安全布局。
-- 截止提醒：顶部铃铛查看备忘、PDF任务、目标的到期事项，可选择到期日北京时间7–21点内预设时段。需要主动开启本设备提醒。网页保持打开时站内弹窗，浏览器允许通知时可显示系统通知；关闭网页后不运行定时器。安卓授权通知后使用本地非精确闹钟，支持重启后恢复，完成/改期/删除及退出账号会更新或取消。系统省电、强行停止可能延迟或阻止通知；跨设备更改需打开此设备同步后更新本地闹钟。
-- PDF 每日计划：在设备提取文字，支持8MB、120页、30000字以内含文字层PDF。扫描件需先OCR，加密PDF需解锁。AI整理需联网并配置密钥；点击后仅将提取文字发送给DeepSeek，原PDF不上传不保存。也可生成不调用AI的本机顺序草稿。预览中可修改任务标题、日期、预计分钟、取舍及关联目标，确认后一次写入待办。保留来源页码，支持日期筛选、完成记录、一键带预计时长进入专注。计划删除保留目标和历史专注。
-- 灵感手记：记录见闻、想法、感受，支持增删改查、日期与5个标签。近7天/30天回顾自动根据记录更新，以卡片、时间线、节奏柱形图、类型分布、标签及原文摘录呈现。可以把想法复制成待办。
-- 阶段 AI 回顾：点击后发送所选周期手记给DeepSeek，最多最近40篇/24000字，生成并保存回顾；本机统计不调用AI。不在应用关闭时自动发起付费请求。删除原手记不会删除已保存回顾中的摘录，可另行删除回顾。
-- 团团可查询PDF计划和灵感手记，提出修改任务、完成状态、手记等操作建议，仍需确认后执行。备份和可选云迁移包含新内容。
+在线服务和历史安装包可能与当前源码版本不同。要体验本仓库的界面，可以按下面的方式从源码运行。
 
-Railway 账号注册、登录、图片隔离及重新部署后的持久化已验证。尚未在用户 iQOO 实体机验证。
+### 网页与本机体验
 
-## 直接使用
-
-在 GitHub Releases 下载：
-- Windows：`Orbit-Life-Windows.zip`，完整解压后双击「启动星轨.cmd」，自带 Node 运行环境。地址 http://127.0.0.1:4318/ 。停止服务用「停止星轨.cmd」。
-- Android 8.0+：`Orbit-Life-Android.apk` 或安卓压缩包。覆盖安装保留原数据，不要先卸载。2.0 使用与旧版相同的签名。
-
-安装包与源码均不含 API 密钥、用户记录或签名私钥。
-
-## 账号、数据库与同步
-
-- 云端账号：电脑和手机登录同一星轨账号，数据存入账号数据库；打开页面、切回应用及每 20 秒刷新。写入采用版本检查，冲突提示刷新，不静默覆盖其他设备。
-- 本机账号：Windows SQLite 账号，数据只在本电脑。云端网页和安卓使用云端账号。
-- 本机体验：无需注册，Windows SQLite／安卓私有 SQLite 存储。旧版数据保留。
-- 云端账号页提供可选的“预览本机数据迁移”。登录不会自动迁移或绑定；确认后仅补充缺少的习惯、打卡、账目、目标、备忘、专注记录，保留云端已有记录及本机原件。重复迁移去重；预算、预测、AI 对话及设置不覆盖。
-- 密码使用 scrypt 加盐哈希；会话使用 HttpOnly Cookie（电脑）或 Android Keystore 加密令牌（手机）。恢复码只显示一次，请妥善保存。
-- 云端入口：https://orbit-life-production.up.railway.app 。个人记录受账号保护，用户数据不进入公开 GitHub。旧站账号不会自动迁入新数据库。
-- 网络断开时安卓可读取当前账号缓存，账号写入需要联网。进行中的计时器按设备保存，完成专注记录参与同步。
-
-电脑数据库为 `data/orbit.sqlite`。复制整个 data 目录前先停止服务。GitHub 用于同步源码与发布安装包，个人记录存放在账号数据库，不提交到公开仓库。
-
-## 功能
-
-- 习惯：新建、搜索、分类、编辑、重复星期、归档／恢复、删除。
-- 打卡：当天完成、历史补记、按习惯与日期查看、修改日期与备注、删除。删除习惯会一并删除该习惯的打卡记录。
-- 专注：1–720 分钟、自定义休息 1–120 分钟、暂停／继续、关联事项、按真实截止时间恢复、完成历史与统计。
-- 账本：收入支出增删改查、分类、月份筛选、预算与导出。
-- 目标与备忘：关联目标、截止日期、完成状态、编辑删除；支持生活目标与储蓄目标。
-- 规划：预计到手＝工资＋奖金加班＋其他收入－扣款；预计可存＝到手－生活支出；储蓄缺口＝计划存款－预计可存，最低零。预测不会记为实际收入，目标积累金额需单独维护。
-- 团团：查询相关数据，提出打卡、记账、目标、备忘、规划及专注设置的操作建议，用户确认后才写入。
-
-## AI 密钥
-
-Windows 双击「配置团团AI.cmd」输入 DeepSeek 密钥，Windows DPAPI 加密保存到 `%LOCALAPPDATA%/Orbit/deepseek.key.dpapi`，在项目外。也可使用后端环境变量 `DEEPSEEK_API_KEY`，不要加 VITE_ 或 NEXT_PUBLIC_ 前缀。
-
-安卓在账号页 AI 设置中输入自己的密钥，由 Android Keystore 加密。云端账号聊天时，设备通过 HTTPS 临时向后端提供密钥用于 DeepSeek 请求，不写入账号数据库；Railway 网页可在账号页保存加密密钥。聊天及请求查询的数据将发给 DeepSeek。固定官方 HTTPS 接口，模型 `deepseek-flash`。
-
-AI 不执行系统命令、读取任意文件或进行转账；操作需要确认。已发送到聊天或公开的密钥应在服务商后台更换。
-
-## 开发
-
-Node.js 24：
+使用 Node.js 24，在仓库根目录运行：
 
 ```sh
-npm ci
+npm ci --ignore-scripts
 npm run build:local
-npm run start:local
-npm run test:domain
-npx tsc --noEmit
+node local/server.mjs
 ```
 
-`npm run build` 构建云端，使用 D1；`db/schema.ts` 与 `drizzle/` 保存数据库迁移。`server/accounts.mjs` 是电脑与云端共用的账号 API，`shared/` 为状态及 AI 逻辑，`mobile/runtime.mjs` 和 `android/` 为安卓桥接，`app/v2.css` 为新版响应式界面。
+浏览器打开 `http://127.0.0.1:4318/`，选择「先体验，仅保存在本机」。Windows 也可以在构建后用「启动星轨.cmd」打开应用。
 
-`npm run build:android` 需要 Java 21、Android Build Tools 35 和 Platform 35。SDK 默认 `%LOCALAPPDATA%/Orbit/android-sdk`；可设置 `ORBIT_ANDROID_SDK`。签名文件及口令保存在 `%LOCALAPPDATA%/Orbit/`，不在仓库；请自行备份，更新必须使用同一签名。构建检查 APK 内资源路径，避免 Windows 反斜杠引起安卓黑屏。
+### Android 与 iOS
 
-发布前运行 `node scripts/scan-secrets.mjs` 检查源码、Git 历史、APK、Windows 包和前端产物。`.gitignore` 排除数据库、密钥、日志、签名及输出。中文字体 Noto Sans SC 和 Ma Shan Zheng，授权在 `public/fonts/`。
+| 平台 | 从源码构建 |
+| --- | --- |
+| Android 8.0+ | Windows 上准备 Java 21、Android Build Tools 35 和 Platform 35，运行 `npm run build:android -- --side-by-side`。APK 生成在 `release/`。覆盖升级需要相同包名和签名。 |
+| iOS 17+ | 运行 `npm run build:local` 和 `node scripts/prepare-ios.mjs`，再在 Mac 上用 Xcode 打开工程。真机运行需要选择开发团队签名。 [iOS 构建说明](ios/README.md) |
 
-## Railway 部署
+Android SDK 默认位于 `%LOCALAPPDATA%/Orbit/android-sdk`，也可通过 `ORBIT_ANDROID_SDK` 指定。请将签名文件和口令保留在本机。
 
-使用仓库 Dockerfile 与 railway.json；挂载持久卷到 /data，设置 PORT=8080、ORBIT_DATA_DIR=/data、ORBIT_PUBLIC_ORIGIN 为服务 HTTPS 域名、ORBIT_ENCRYPTION_KEY 为32字节随机值的Base64。保留该密钥，变更后旧AI密钥将无法解密。SQLite 使用单副本服务，不要横向多副本共享写入。定期备份持久卷。
+## 一起维护星轨
 
-直连 APK：https://orbit-life-production.up.railway.app/download/android.apk 。服务从本仓库对应版本 Release 校验 SHA256 后缓存分发。
+欢迎从一个小改动开始，也欢迎长期参与某一端的测试和评审。以下几个方向都适合第一次贡献：
+
+- **iOS 真机验证** · 在 Xcode 中构建，记录设备与系统版本，帮忙检查启动、备份恢复和云端登录。
+- **移动端体验** · 检查窄屏和深浅色界面，报告文字截断、难点的按钮或键盘遮挡。
+- **测试与文档** · 给待办、专注计时或备份恢复补一项回归测试，或完善首次安装步骤。
+
+遇到问题可以先在 Issues 里描述设备、版本、复现步骤、预期结果和实际结果。截图请遮住待办、账单等个人信息。准备提交代码前，建议先在对应 Issue 说明想改哪一部分，方便对齐需求，也可以减少重复工作。 [打开 Issues](https://github.com/yinyueQvQ/orbit-life/issues)
+
+```sh
+npm run test:domain
+npx tsc --noEmit
+npm run build:local
+```
+
+**如果星轨对你有用，欢迎点个 ⭐。** 如果只能改一处，什么会让你更愿意每天打开它？欢迎在 Issues 里告诉我。
+
+## 开发与部署
+
+| 目录 | 用途 |
+| --- | --- |
+| `app/`、`components/` | 页面、导航与界面组件 |
+| `shared/`、`server/` | 数据逻辑、账号 API 和同步 |
+| `mobile/`、`android/`、`ios/` | 移动端运行时与原生工程 |
+| `local/`、`deploy/` | 本机服务和网站部署入口 |
+| `tests/` | 应用数据逻辑的自动化测试 |
+
+Railway 部署使用仓库的 `Dockerfile` 和 `railway.json`。为星轨配置 MySQL 8.0.19 或以上版本的专用数据库，并把 MySQL 服务的私网连接串引用到星轨服务的 `ORBIT_MYSQL_URL`（例如 MySQL 服务名为 `MySQL` 时使用 `${{MySQL.MYSQL_URL}}`）。服务启动时会创建表。使用需要 TLS 的数据库时，设置 `ORBIT_MYSQL_TLS=1` 以启用证书验证。
+
+星轨服务仍需将现有持久卷挂载为 `/data`，用于旧库迁移和 Android 安装包缓存。保留 `PORT=8080`、`ORBIT_DATA_DIR=/data`、`ORBIT_PUBLIC_ORIGIN` 和 `ORBIT_ENCRYPTION_KEY`。原有加密密钥用于解密已保存的 AI 密钥。新部署使用 32 字节随机值的 Base64 编码。
+
+### 从 Railway 上的 SQLite 切换
+
+1. 安排维护窗口，暂停旧版本写入，备份原持久卷和 `ORBIT_ENCRYPTION_KEY`。迁移时使用同一个持久卷，保留完整的 SQLite 数据库及存在的 WAL 文件。
+2. 将星轨连接到空 MySQL 数据库，设置 `ORBIT_MIGRATE_SQLITE=1`，再启动新版本。服务在对外接收请求前迁移账号、会话、工作区、附件、加密 AI 密钥和其他账号表。迁移和完成标记在同一个事务中提交，日志只输出各表行数。
+3. 检查启动日志，验证原账号登录、记录、附件和同步，再移除 `ORBIT_MIGRATE_SQLITE`。迁移标记会让重启跳过导入。切换后，新写入只进入 MySQL。旧 SQLite 备份仅能恢复到切换前的状态。
+
+## 本机数据与可选 AI
+
+Windows 本机数据位于 `data/orbit.sqlite`。可以从应用内导出备份，也可以先停止服务再复制整个 `data/` 目录。个人记录、API 密钥和签名文件请保留在仓库之外。发布前可运行 `node scripts/scan-secrets.mjs` 检查源码与构建产物。
+
+AI 伙伴「团团」需要联网和 DeepSeek 密钥。启用 AI 后，聊天内容及为完成请求而读取的相关文字会发送给 DeepSeek。团团提出的记录修改需要用户确认后才会写入。PDF 也可以生成不调用 AI 的本机草稿。中文字体的授权文件位于 `public/fonts/`。

@@ -4,6 +4,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
+const sideBySide=process.argv.includes('--side-by-side');
 const root=fileURLToPath(new URL('../',import.meta.url));
 const local=path.join(process.env.LOCALAPPDATA||path.join(process.env.USERPROFILE,'AppData/Local'),'Orbit');
 const sdk=process.env.ORBIT_ANDROID_SDK||path.join(local,'android-sdk');
@@ -13,6 +14,8 @@ const exe=name=>path.join(javaHome,'bin',name+'.exe');
 const workRoot=path.resolve(root,'../work');fs.mkdirSync(workRoot,{recursive:true});
 const work=fs.mkdtempSync(path.join(workRoot,'orbit-android-')),release=path.join(root,'release');
 console.log('Android build workspace: '+work);
+const keyStore=path.join(local,sideBySide?'android-preview-signing.p12':'android-signing.p12'),passFile=path.join(local,sideBySide?'android-preview-signing.json':'android-signing.json');
+if(!sideBySide&&(!fs.existsSync(keyStore)||!fs.existsSync(passFile)))throw Error('Original Android signing files missing. Restore them for an update, or use --side-by-side for an independent installation.');
 for(const d of [work,release,path.join(work,'classes'),path.join(work,'generated'),path.join(work,'dex'),path.join(work,'assets/www')])fs.mkdirSync(d,{recursive:true});
 function run(command,args,extra={}){const r=spawnSync(command,args,{cwd:root,stdio:'inherit',windowsHide:true,...extra});if(r.status!==0)throw Error('Build step failed: '+path.basename(command));}
 run(process.execPath,[path.join(root,'scripts/prepare-pdf-assets.mjs')]);
@@ -20,7 +23,9 @@ run(process.execPath,[path.join(root,'node_modules/vite/bin/vite.js'),'build','-
 fs.cpSync(path.join(root,'dist-local'),path.join(work,'assets/www'),{recursive:true});
 run(path.join(tools,'aapt2.exe'),['compile','--dir',path.join(root,'android/res'),'-o',path.join(work,'compiled.zip')]);
 const unsigned=path.join(work,'unsigned.apk');
-run(path.join(tools,'aapt2.exe'),['link','-o',unsigned,'-I',platform,'--manifest',path.join(root,'android/AndroidManifest.xml'),'--java',path.join(work,'generated'),'-A',path.join(work,'assets'),'--min-sdk-version','26','--target-sdk-version','35',path.join(work,'compiled.zip')]);
+let manifest=path.join(root,'android/AndroidManifest.xml');
+if(sideBySide){let xml=fs.readFileSync(manifest,'utf8').replace('android:label="星轨 ORBIT"','android:label="星轨 ORBIT 新版"').replaceAll('android:name=".MainActivity"','android:name="com.orbit.life.MainActivity"').replaceAll('android:name=".ReminderReceiver"','android:name="com.orbit.life.ReminderReceiver"').replaceAll('android:name=".ReminderBootReceiver"','android:name="com.orbit.life.ReminderBootReceiver"');manifest=path.join(work,'AndroidManifest.xml');fs.writeFileSync(manifest,xml);}
+run(path.join(tools,'aapt2.exe'),['link','-o',unsigned,'-I',platform,'--manifest',manifest,...(sideBySide?['--rename-manifest-package','com.orbit.life.next','--custom-package','com.orbit.life']:[]),'--java',path.join(work,'generated'),'-A',path.join(work,'assets'),'--min-sdk-version','26','--target-sdk-version','35',path.join(work,'compiled.zip')]);
 // AAPT2 on Windows can emit backslash asset paths, unreadable by Android AssetManager.
 fs.writeFileSync(unsigned,normalizeZipPaths(fs.readFileSync(unsigned)));
 const html=fs.readFileSync(path.join(root,'dist-local/local.html'),'utf8');
@@ -34,11 +39,11 @@ run(exe('java'),['-cp',path.join(tools,'lib/d8.jar'),'com.android.tools.r8.D8','
 fs.copyFileSync(unsigned,path.join(work,'dex/app.apk'));
 run(path.join(tools,'aapt.exe'),['add','app.apk','classes.dex'],{cwd:path.join(work,'dex')});
 const aligned=path.join(work,'aligned.apk');run(path.join(tools,'zipalign.exe'),['-f','-p','4',path.join(work,'dex/app.apk'),aligned]);
-const keyStore=path.join(local,'android-signing.p12'),passFile=path.join(local,'android-signing.json');
+fs.mkdirSync(local,{recursive:true});
 let pass;if(fs.existsSync(passFile))pass=JSON.parse(fs.readFileSync(passFile,'utf8')).password;else{pass=crypto.randomBytes(32).toString('hex');fs.writeFileSync(passFile,JSON.stringify({password:pass}));}
 const env={...process.env,ORBIT_SIGN_PASS:pass};
 if(!fs.existsSync(keyStore))run(exe('keytool'),['-genkeypair','-keystore',keyStore,'-storetype','PKCS12','-storepass:env','ORBIT_SIGN_PASS','-keypass:env','ORBIT_SIGN_PASS','-alias','orbit','-keyalg','RSA','-keysize','3072','-validity','10000','-dname','CN=Orbit Life, O=Orbit, C=CN'],{env});
-const apk=path.join(release,'Orbit-Life-Android.apk');
+const apk=process.env.ORBIT_ANDROID_OUTPUT?path.resolve(process.env.ORBIT_ANDROID_OUTPUT):path.join(release,sideBySide?'Orbit-Life-Android-Independent.apk':'Orbit-Life-Android.apk');
 run(exe('java'),['-jar',path.join(tools,'lib/apksigner.jar'),'sign','--ks',keyStore,'--ks-key-alias','orbit','--ks-pass','env:ORBIT_SIGN_PASS','--key-pass','env:ORBIT_SIGN_PASS','--out',apk,aligned],{env});
 run(exe('java'),['-jar',path.join(tools,'lib/apksigner.jar'),'verify','--verbose',apk]);
 assertAndroidAssets(fs.readFileSync(apk),requiredAssets);

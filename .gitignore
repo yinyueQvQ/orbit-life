@@ -49,6 +49,9 @@ yarn-error.log*
 /local/.server.pid
 /release/
 /android/build/
+/ios/Orbit/www/
+/ios/DerivedData/
+xcuserdata/
 *.keystore
 *.jks
 *.p12

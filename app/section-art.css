@@ -1,0 +1,52 @@
+.orbit-section {
+ --section-ink: #a8caff;
+}
+.orbit-section[data-section=notes] { --section-ink: #8bb8ff; }
+.orbit-section[data-section=habits] { --section-ink: #79d9b3; }
+.orbit-section[data-section=ledger] { --section-ink: #edbe79; }
+.orbit-section[data-section=journal] { --section-ink: #e6a8c5; }
+.orbit-section[data-section=memos] { --section-ink: #b7adef; }
+.orbit-section[data-section=documents] { --section-ink: #86d9e4; }
+.orbit-section[data-section=calendar] { --section-ink: #9fd195; }
+.orbit-section[data-section=insights] { --section-ink: #9faafb; }
+.orbit-section[data-section=pet] { --section-ink: #efae95; }
+.orbit-section[data-section=account] { --section-ink: #93bfd4; }
+.orbit-section[data-section=focus] { --section-ink: #e0a5f5; }
+.orbit-section:not([data-section=home]) {
+ background: radial-gradient(ellipse 56% 25rem at 86% 8rem, color-mix(in srgb, var(--section-ink) 16%, transparent), transparent),
+  radial-gradient(ellipse 43% 30rem at 14% 31rem, color-mix(in srgb, var(--section-ink) 8%, transparent), transparent);
+}
+.v2-app .orbit-section-heading {
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ min-height: 120px;
+ padding: 14px clamp(16px, 3vw, 32px);
+ margin-bottom: 18px;
+ border: 1px solid color-mix(in srgb, var(--section-ink) 32%, transparent);
+ border-radius: 20px;
+ background: linear-gradient(110deg, transparent, color-mix(in srgb, var(--section-ink) 17%, transparent));
+}
+.orbit-section-art {
+ flex: 0 0 auto;
+ width: clamp(88px, 22vw, 190px);
+ height: auto;
+ color: color-mix(in srgb, var(--section-ink) 55%, currentColor);
+ stroke: currentColor;
+ stroke-width: 2;
+ stroke-linecap: round;
+ stroke-linejoin: round;
+ pointer-events: none;
+}
+.task-group-list { display: grid; gap: 12px; }
+.task-group-list > section > h3 { margin: 8px 0; font-size: 1rem; }
+.task-goal-group { border: 1px solid color-mix(in srgb, currentColor 20%, transparent); border-radius: 12px; padding: 0 12px; }
+.task-goal-group > summary { display: flex; gap: 10px; align-items: center; padding: 12px 0; cursor: pointer; }
+.task-goal-group > summary span { margin-inline-start: auto; white-space: nowrap; }
+.task-goal-group > summary::after { content: '+'; }
+.task-goal-group[open] > summary::after { content: '−'; }
+.memory-audio { display: grid; gap: 6px; margin-block: 8px; }
+.memory-audio audio { width: 100%; max-width: 360px; }
+@media (max-width: 480px) {
+ .v2-app .orbit-section-heading { min-height: 95px; }
+}
