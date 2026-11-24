@@ -1,14 +1,17 @@
-export const memoSections = { temporary: '临时', longTerm: '长期' };
+import {audioReference} from './attachments.mjs';
+
+export const memoSections = { urgent: '紧急事项', temporary: '临时', longTerm: '长期' };
 export const memoCategories = ['口号', '签名 / Sign', '灵感', '其他'];
 export const memoLimits = { title: 80, content: 4000, records: 5000 };
 
-function cleanMemo({ section, category, title, content, pinned }) {
+function cleanMemo({ section, category, title, content, pinned, audio }) {
  if (typeof section !== 'string' || !Object.hasOwn(memoSections, section)) throw Error('备忘保留类型无效');
  if (!memoCategories.includes(category)) throw Error('备忘分类无效');
  if (typeof title !== 'string' || title.length > memoLimits.title) throw Error('备忘标题过长或无效');
- if (typeof content !== 'string' || !content.trim() || content.length > memoLimits.content) throw Error('请填写 1 至 4000 字的备忘正文');
+ const attachment = audioReference(audio);
+ if (typeof content !== 'string' || (!content.trim() && !attachment) || content.length > memoLimits.content) throw Error('请填写备忘正文或添加音乐，正文最多 4000 字');
  if (typeof pinned !== 'boolean') throw Error('备忘置顶状态无效');
- return { section, category, title: title.trim(), content, pinned };
+ return { section, category, title: title.trim(), content, pinned, ...(audio !== undefined ? { audio: attachment } : {}) };
 }
 
 export function changeMemo(memos, change, now = new Date().toISOString()) {

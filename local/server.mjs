@@ -1,4 +1,4 @@
-import {mediaAPI,exportImages} from '../server/media.mjs';
+import {mediaAPI,exportMedia,mediaReferences,assertOwnedMedia} from '../server/media.mjs';
 import {createAccountAPI,callDeepSeek} from '../server/accounts.mjs';
 import {accountSchema,nodeStore} from '../server/store.mjs';
 import {SYNC_URL} from '../shared/config.mjs';
@@ -31,11 +31,24 @@ if(!db.prepare('SELECT id FROM local_workspace WHERE id=1').get()){
  if(db.prepare("SELECT name FROM sqlite_master WHERE name='local_chat'").get())initial.messages=all('SELECT role,content,created FROM local_chat ORDER BY id');
  db.prepare('INSERT INTO local_workspace VALUES (1,?)').run(JSON.stringify(initial));
 }
-const workspace=createWorkspace({load:()=>JSON.parse(db.prepare('SELECT value FROM local_workspace WHERE id=1').get().value),save:s=>db.prepare('UPDATE local_workspace SET value=? WHERE id=1').run(JSON.stringify(s)),configured:hasKey,complete:async body=>{
+const workspace=createWorkspace({load:()=>JSON.parse(db.prepare('SELECT value FROM local_workspace WHERE id=1').get().value),save:async s=>{
+ const store=nodeStore(db);
+ const previous=JSON.parse(db.prepare('SELECT value FROM local_workspace WHERE id=1').get().value);
+ const used=new Set(mediaReferences(s));
+ await assertOwnedMedia(store,'local-guest',used);
+ db.prepare('UPDATE local_workspace SET value=? WHERE id=1').run(JSON.stringify(s));
+ for(const id of mediaReferences(previous))if(!used.has(id))await store.run('DELETE FROM orbit_media WHERE owner=? AND id=?','local-guest',id);
+ },configured:hasKey,complete:async body=>{
  const key=await readKey();if(!key)throw Error('请先配置密钥');
  try{const r=await fetch('https://api.deepseek.com/chat/completions',{method:'POST',redirect:'error',signal:AbortSignal.timeout(45000),headers:{Authorization:'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify(body)});if(!r.ok)throw Error(({401:'密钥无效，请重新配置',402:'DeepSeek余额不足',429:'请求繁忙，请稍后重试'})[r.status]||'DeepSeek暂时不可用');return await r.json();}catch(e){if(e.name==='TimeoutError'||e.name==='TypeError')throw Error('网络连接失败或超时');throw e;}
 }});
-async function api(req,res,path){if(req.method!=='GET'&&req.headers.origin!=='http://'+host+':'+port)return json(res,403,{error:'无效来源'});let body={};if(req.method==='POST'){try{let raw='';for await(const c of req){raw+=c;if(raw.length>180000)return json(res,413,{error:'请求过长'});}body=JSON.parse(raw);}catch{return json(res,400,{error:'格式无效'});}}const result=await workspace(path,req.method,body);return json(res,result.status,result.data);}
+let guestWrites=Promise.resolve();
+function updateGuest(operation){
+ const result=guestWrites.then(operation);
+ guestWrites=result.then(()=>{},()=>{});
+ return result;
+}
+async function api(req,res,path){if(req.method!=='GET'&&req.headers.origin!=='http://'+host+':'+port)return json(res,403,{error:'无效来源'});let body={};if(req.method==='POST'){try{let raw='';for await(const c of req){raw+=c;if(raw.length>180000)return json(res,413,{error:'请求过长'});}body=JSON.parse(raw);}catch{return json(res,400,{error:'格式无效'});}}const handle=()=>workspace(path,req.method,body);const result=await (req.method==='GET'?handle():updateGuest(handle));return json(res,result.status,result.data);}
 const accountAPI=createAccountAPI({store:nodeStore(db),complete:callDeepSeek});
 const cloud=process.env.ORBIT_SYNC_URL||SYNC_URL;
 const readCookie=(req,name)=>req.headers.cookie?.split(';').map(x=>x.trim()).find(x=>x.startsWith(name+'='))?.slice(name.length+1);
@@ -46,7 +59,7 @@ async function accounts(req,res,url){
  if(url.pathname==='/api/auth/guest'){res.setHeader('Set-Cookie',['orbit_cloud_session=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0','orbit_session=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0']);return json(res,200,{ok:true});}
  let body={};try{body=raw?JSON.parse(raw):{}}catch{return json(res,400,{error:'请求格式无效'})}
  const remoteToken=readCookie(req,'orbit_cloud_session'),useCloud=Boolean(remoteToken)||body.mode==='cloud';
- if(url.pathname==='/api/guest/export'||url.pathname==='/api/guest/state'){const state=JSON.parse(db.prepare('SELECT value FROM local_workspace WHERE id=1').get().value);return json(res,200,url.pathname.endsWith('/state')?state:{...state,_media:await exportImages(nodeStore(db),'local-guest',state)});}
+ if(url.pathname==='/api/guest/export'||url.pathname==='/api/guest/state'){const state=JSON.parse(db.prepare('SELECT value FROM local_workspace WHERE id=1').get().value);return json(res,200,url.pathname.endsWith('/state')?state:{...state,_media:await exportMedia(nodeStore(db),'local-guest',state)});}
  if(url.pathname.startsWith('/api/guest/media/')){const media=await mediaAPI(nodeStore(db),'local-guest',url.pathname.replace('/api/guest/media/','/api/media/'),req.method,body);return json(res,media.status,media.data);}
  if(!useCloud&&!readCookie(req,'orbit_session')&&(url.pathname==='/api/media'||url.pathname.startsWith('/api/media/'))){const media=await mediaAPI(nodeStore(db),'local-guest',url.pathname,req.method,body);return json(res,media.status,media.data);}
  if(!useCloud&&!readCookie(req,'orbit_session')&&!url.pathname.startsWith('/api/auth/'))return api({...req,headers:req.headers,method:req.method,[Symbol.asyncIterator]:async function*(){if(raw)yield raw}},res,url.pathname);
@@ -60,7 +73,7 @@ async function accounts(req,res,url){
  if(!useCloud&&response.headers.get('set-cookie')){cookies.push(response.headers.get('set-cookie'));cookies.push('orbit_cloud_session=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0');}
  if(url.pathname==='/api/auth/logout'){cookies.push('orbit_cloud_session=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0');cookies.push('orbit_session=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0');}
  if(data.user)data.mode=useCloud?'cloud':'local';if(cookies.length)res.setHeader('Set-Cookie',cookies);return json(res,response.status,data);
- }catch{return json(res,503,{error:'无法连接账号服务。离线数据不会被清除，请检查网络后重试。'})}
+ }catch(error){if(url.pathname.includes('/media'))return json(res,400,{error:error.message});return json(res,503,{error:'无法连接账号服务。离线数据不会被清除，请检查网络后重试。'})}
 }
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.wasm':'application/wasm','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.webp':'image/webp','.woff2':'font/woff2','.ttf':'font/ttf'};
 const server=http.createServer(async(req,res)=>{if(req.headers.host!==`${host}:${port}`)return json(res,403,{error:'仅允许本机访问'});const url=new URL(req.url,`http://${host}:${port}`);if(url.pathname==='/api/local-health')return json(res,200,{app:'orbit-local',pid:process.pid});if(url.pathname.startsWith('/api/'))return accounts(req,res,url);if(!['GET','HEAD'].includes(req.method))return json(res,405,{error:'不支持此操作'});try{const relative=decodeURIComponent(url.pathname==='/'?'/local.html':url.pathname);const base=path.join(root,'dist-local');const file=path.resolve(base,'.'+relative);if(!file.startsWith(base+path.sep)||!existsSync(file))return json(res,404,{error:'文件不存在'});res.writeHead(200,{'Content-Type':mime[path.extname(file)]||'application/octet-stream','X-Content-Type-Options':'nosniff'});res.end(req.method==='HEAD'?undefined:readFileSync(file));}catch{return json(res,400,{error:'请求无效'});}});

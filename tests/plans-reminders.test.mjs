@@ -17,3 +17,16 @@ test('AI draft does not write workspace; malformed response and nonexistent sour
 test('reminders use Beijing time and remove completed/deleted tasks while respecting changed dates',()=>{
  let state=applyChange(newState(),{action:'plan',plan:localPlan(input),planId:'remind-plan'});const item=dueReminders(state,9)[0];assert.equal(item.at,Date.parse('2026-10-28T01:00:00Z'));const id=state.notes[0].id;state=applyChange(state,{action:'updateNote',id,due:'2026-10-30'});assert.equal(dueReminders(state,9).find(r=>r.recordId===id).date,'2026-10-30');state=applyChange(state,{action:'updateNote',id,done:true});assert(!dueReminders(state).some(r=>r.recordId===id));state=applyChange(state,{action:'deletePlan',id:'remind-plan'});assert.equal(dueReminders(state).length,0);assert.deepEqual(publicState({profile:{},notes:[]}).documentPlans,[]);
 });
+
+test('PDF planning passes the instruction and retries a draft exceeding the daily budget',async()=>{
+ const input={title:'练习',filename:'练习.pdf',start:'2026-10-28',end:'2026-10-29',dailyMinutes:30,instruction:'关联英语目标，每天一项练习',pages:[{page:3,text:'先阅读整节课，再选择一个示例动手完成，最后回顾并记录重点。'}]};
+ let calls=0;
+ const result=await aiPlan(async({messages})=>{
+  assert.equal(JSON.parse(messages[1].content).instruction,input.instruction);
+  calls++;
+  return {choices:[{message:{content:JSON.stringify({summary:'阅读并练习',goalId:'english',tasks:[{title:'读并练习',content:'做一个示例',pages:[3],date:input.start,minutes:calls===1?45:25}]})}}]};
+ },input,[{id:'english',title:'英语目标'}]);
+ assert.equal(calls,2);
+ assert.equal(result.goalId,'english');
+ assert.equal(result.tasks[0].minutes,25);
+});

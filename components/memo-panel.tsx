@@ -4,10 +4,12 @@ import { useMemo, useRef, useState, type FormEvent } from 'react';
 import { Clipboard, Pin, Plus, X } from 'lucide-react';
 import { api } from '../client/api.mjs';
 import { findMemos, memoCategories, memoLimits, memoSections } from '../shared/memos.mjs';
+import {AudioField, MemoryAudio, saveWithAudio, type AudioReference} from './memory-audio';
 import './memo-panel.css';
 
 type Section = keyof typeof memoSections;
-type Memo = { id: string; title: string; content: string; section: Section; category: string; pinned: boolean; updatedAt: string };
+const sectionTabs: (Section | '')[] = ['', ...Object.keys(memoSections) as Section[]];
+type Memo = { id: string; title: string; content: string; section: Section; category: string; pinned: boolean; updatedAt: string; audio?: AudioReference|null };
 type Dialog = { type: 'edit'; memo?: Memo } | { type: 'delete'; memo: Memo };
 type MemoChange = { action: 'memo' | 'updateMemo' | 'deleteMemo'; id?: string; title?: string; content?: string; category?: string; section?: Section; pinned?: boolean };
 const pageSize = 48;
@@ -49,14 +51,15 @@ export default function MemoPanel({ memos, onChange }: { memos: Memo[]; onChange
   setDialog(next);
  }
 
- async function save(change: MemoChange, message: string) {
+ async function save(change: MemoChange, message: string, form?: FormData) {
   if (writing.current) return;
   writing.current = true;
   setBusy(true);
   setError('');
   setStatus('');
   try {
-   await api('/api/life', change);
+   if (form) await saveWithAudio(form, change);
+   else await api('/api/life', change);
    await onChange();
    if (change.action === 'memo') {
     setSection(change.section ?? 'temporary');
@@ -78,17 +81,16 @@ export default function MemoPanel({ memos, onChange }: { memos: Memo[]; onChange
   event.preventDefault();
   const form = new FormData(event.currentTarget);
   const content = String(form.get('content') || '');
-  if (!content.trim()) { setError('请填写备忘正文。'); return; }
   const id = dialog?.memo?.id;
-  const retention = form.get('section') === 'longTerm' ? 'longTerm' : 'temporary';
-  void save({ action: id ? 'updateMemo' : 'memo', id, content, title: String(form.get('title') || ''), category: String(form.get('category')), section: retention }, '已保存备忘。');
+  const selectedSection = form.get('section') as Section;
+  void save({ action: id ? 'updateMemo' : 'memo', id, content, title: String(form.get('title') || ''), category: String(form.get('category')), section: selectedSection }, '已保存备忘。', form);
  }
 
  return <div className="memo-space">
   <section className="v2-card memo-controls" aria-label="筛选备忘">
    <div className="memo-row">
-    <div className="space-tabs memo-tabs" role="group" aria-label="保留类型">
-     {(['', 'temporary', 'longTerm'] as const).map(key => <button key={key} type="button" aria-pressed={section === key} data-active={section === key} onClick={() => { setSection(key); setLimit(pageSize); }}>{key ? memoSections[key] : '全部'}</button>)}
+    <div className="space-tabs memo-tabs" role="group" aria-label="备忘分区">
+     {sectionTabs.map(key => <button key={key} type="button" aria-pressed={section === key} data-active={section === key} onClick={() => { setSection(key); setLimit(pageSize); }}>{key ? memoSections[key] : '全部'}</button>)}
     </div>
     <button className="v2-primary" type="button" disabled={busy} onClick={() => open({ type: 'edit' })}><Plus size={16}/> 新建备忘</button>
    </div>
@@ -96,7 +98,7 @@ export default function MemoPanel({ memos, onChange }: { memos: Memo[]; onChange
     <label>搜索备忘<input type="search" value={query} placeholder="搜索标题、正文或分类" onChange={event => { setQuery(event.target.value); setLimit(pageSize); }}/></label>
     <label>分类<select value={category} onChange={event => { setCategory(event.target.value); setLimit(pageSize); }}><option value="">全部分类</option>{memoCategories.map(value => <option key={value}>{value}</option>)}</select></label>
    </div>
-   <p className="v2-muted memo-hint">临时随手记，长期留作常用文案。两类都不会自动删除。</p>
+   <p className="v2-muted memo-hint">临时备忘也会保留，直到你手动删除。</p>
   </section>
 
   <p role="status" className="memo-feedback">{status}</p>
@@ -106,6 +108,7 @@ export default function MemoPanel({ memos, onChange }: { memos: Memo[]; onChange
     <div className="memo-row"><span className="v2-muted">{memoSections[memo.section]} · {memo.category}</span>{memo.pinned && <span className="memo-pin"><Pin size={14}/> 已置顶</span>}</div>
     {memo.title && <h2>{memo.title}</h2>}
     <p className="memo-content">{memo.content}</p>
+    <MemoryAudio key={memo.audio?.id} audio={memo.audio}/>
     <div className="memo-actions">
      <button type="button" className="v2-secondary" onClick={async () => { setError(''); setStatus(''); try { await copyText(memo.content); setStatus('已复制正文。'); } catch { setError('无法自动复制，请选中正文后手动复制。'); } }}><Clipboard size={15}/> 复制</button>
      <button type="button" className="v2-secondary" disabled={busy} onClick={() => open({ type: 'edit', memo })}>编辑</button>
@@ -125,11 +128,12 @@ export default function MemoPanel({ memos, onChange }: { memos: Memo[]; onChange
      <button type="button" className="v2-danger" disabled={busy} onClick={() => void save({ action: 'deleteMemo', id: dialog.memo.id }, '已删除备忘。')}>{busy ? '正在删除…' : '确认删除'}</button>
     </> : <form className="v2-form" onSubmit={submit}>
      <div className="v2-form-grid">
-      <label>保留类型<select name="section" defaultValue={dialog.memo?.section || section || 'temporary'}>{Object.entries(memoSections).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+      <label>分区<select name="section" defaultValue={dialog.memo?.section || section || 'temporary'}>{Object.entries(memoSections).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
       <label>分类<select name="category" defaultValue={dialog.memo?.category || category || '其他'}>{memoCategories.map(value => <option key={value}>{value}</option>)}</select></label>
      </div>
      <label>标题（选填）<input name="title" defaultValue={dialog.memo?.title} maxLength={memoLimits.title}/></label>
-     <label>正文<textarea name="content" rows={5} required maxLength={memoLimits.content} defaultValue={dialog.memo?.content} placeholder="例如：保持好奇，慢慢向前。"/></label>
+     <label>正文<textarea name="content" rows={5} maxLength={memoLimits.content} defaultValue={dialog.memo?.content} placeholder="例如：保持好奇，慢慢向前。"/></label>
+     <AudioField audio={dialog.memo?.audio}/>
      <button className="v2-primary" disabled={busy}>{busy ? '正在保存…' : '保存备忘'}</button>
     </form>}
     {error && <p className="v2-error" role="alert">{error}</p>}

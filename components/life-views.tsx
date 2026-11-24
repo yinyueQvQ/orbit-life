@@ -1,8 +1,8 @@
 'use client';
 import {useRef,useState} from 'react';
-import {ArrowUpRight,Check,ChevronLeft,ChevronRight,CheckCheck,ListTodo,Plus,Sparkles,Timer} from 'lucide-react';
+import {ArrowUpRight,Check,ChevronLeft,ChevronRight,CheckCheck,ListTodo,Plus,Sparkles,Target,Timer} from 'lucide-react';
 import PetChat from './pet-chat';
-import {visibleTasks,dueLabel} from '../client/task-list.mjs';
+import {visibleTasks,dueLabel,groupTasks} from '../client/task-list.mjs';
 import {api} from '../client/api.mjs';
 export const day=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Shanghai'}).format(new Date());
 export const cash=(n:number)=>new Intl.NumberFormat('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2}).format(n/100);
@@ -18,7 +18,7 @@ export function Dashboard({data,onChange,onNav}:{data:any;onChange:()=>Promise<v
  const pendingHabits=habits.filter(habit=>!checked.has(habit.id));
  const completedHabits=habits.filter(habit=>checked.has(habit.id));
  const tasks:TodayTask[]=visibleTasks(data.notes,{filter:'todo',today:date});
- const goals=new Map<string,string>(data.goals.map((goal:{id:string;title:string})=>[goal.id,goal.title]));
+ const {groups:taskGroups,independent}=groupTasks(tasks.slice(0,4),data.goals);
 
  const [quickNote,setQuickNote]=useState('');
  const [pending,setPending]=useState('');
@@ -56,6 +56,15 @@ export function Dashboard({data,onChange,onNav}:{data:any;onChange:()=>Promise<v
   return <p className={feedback.error?'v2-error':'v2-muted'} role={feedback.error?'alert':'status'}>{feedback.text}</p>;
  }
 
+ const renderTask=(task:TodayTask)=><li className="dashboard-note" key={task.id}>
+     <button className="check-btn" aria-label={'完成'+task.title} disabled={Boolean(pending)} onClick={()=>void complete('tasks',{action:'updateNote',id:task.id,done:true},'已完成待办，可在待办页撤销。')}><Check size={13} aria-hidden="true"/></button>
+     <div>
+      <strong>{task.title}</strong>
+      {task.due&&<small>{task.due} 截止 {dueLabel(task,date)}</small>}
+     </div>
+     <button className="v2-text today-focus-link" aria-label={'专注于'+task.title} onClick={()=>window.dispatchEvent(new CustomEvent('orbit:focus-task',{detail:task}))}><Timer size={14} aria-hidden="true"/>专注</button>
+    </li>;
+
  return <div className="today-dashboard">
   <section className="v2-card today-overview">
    <div className="today-hero-copy">
@@ -86,15 +95,13 @@ export function Dashboard({data,onChange,onNav}:{data:any;onChange:()=>Promise<v
      </div>
     </form>
     {feedbackFor('tasks')}
-    {tasks.length ? <ul className="today-list">{tasks.slice(0,4).map(task=><li className="dashboard-note" key={task.id}>
-     <button className="check-btn" aria-label={'完成'+task.title} disabled={Boolean(pending)} onClick={()=>void complete('tasks',{action:'updateNote',id:task.id,done:true},'已完成待办，可在待办页撤销。')}><Check size={13} aria-hidden="true"/></button>
-     <div>
-      <strong>{task.title}</strong>
-      {task.goalId&&goals.has(task.goalId)&&<small>{goals.get(task.goalId)}</small>}
-      {task.due&&<small>{task.due} 截止 {dueLabel(task,date)}</small>}
-     </div>
-     <button className="v2-text today-focus-link" aria-label={'专注于'+task.title} onClick={()=>window.dispatchEvent(new CustomEvent('orbit:focus-task',{detail:task}))}><Timer size={14} aria-hidden="true"/>专注</button>
-    </li>)}</ul> : <p className="v2-muted today-empty"><CheckCheck size={17} aria-hidden="true"/>没有待处理的事项</p>}
+    {tasks.length ? <div className="task-group-list">
+     {taskGroups.map(({goal,items})=><details className="task-goal-group" key={goal.id}>
+      <summary><Target size={16}/><strong>{goal.title}</strong><span>{items.length} 项</span></summary>
+      <ul className="today-list">{items.map(renderTask)}</ul>
+     </details>)}
+     {independent.length>0&&<ul className="today-list">{independent.map(renderTask)}</ul>}
+    </div> : <p className="v2-muted today-empty"><CheckCheck size={17} aria-hidden="true"/>没有待处理的事项</p>}
    </section>
 
    <section className="v2-card today-panel today-habit-panel" aria-labelledby="today-habit-title">

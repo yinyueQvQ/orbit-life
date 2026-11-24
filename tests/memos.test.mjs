@@ -66,3 +66,15 @@ test('shared workspace API saves and reloads memos', async () => {
  assert.notEqual((await handle('/api/life', 'POST', { action: 'memo', content: '' })).status, 200);
  assert.equal(stored.memos.length, 1);
 });
+
+test('urgent memos can be created, moved, filtered, and restored from backup', () => {
+ const initial = applyChange(newState(), { action: 'memo', content: '准备材料' });
+ const created = applyChange(initial, { action: 'memo', content: '提交申请', section: 'urgent' });
+ const restored = validateBackup(JSON.parse(JSON.stringify(created)));
+ const filter = { section: 'urgent', category: '', query: '紧急事项' };
+ assert.deepEqual(findMemos(restored.memos, filter).map(memo => memo.content), ['提交申请']);
+
+ const moved = applyChange(restored, { action: 'updateMemo', id: initial.memos[0].id, section: 'urgent' });
+ assert.equal(moved.memos.find(memo => memo.id === initial.memos[0].id).section, 'urgent');
+ assert.equal(findMemos(moved.memos, filter).length, 2);
+});

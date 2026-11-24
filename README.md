@@ -75,7 +75,15 @@ npm run build:local
 | `local/`、`deploy/` | 本机服务和网站部署入口 |
 | `tests/` | 应用数据逻辑的自动化测试 |
 
-Railway 部署使用仓库的 `Dockerfile` 和 `railway.json`。把持久卷挂载为 `/data`，设置 `PORT=8080`、`ORBIT_DATA_DIR=/data`、`ORBIT_PUBLIC_ORIGIN` 和 `ORBIT_ENCRYPTION_KEY`。加密密钥为 32 字节随机值的 Base64 编码，请与持久卷分别备份。SQLite 使用单副本写入。
+Railway 部署使用仓库的 `Dockerfile` 和 `railway.json`。为星轨配置 MySQL 8.0.19 或以上版本的专用数据库，并把 MySQL 服务的私网连接串引用到星轨服务的 `ORBIT_MYSQL_URL`（例如 MySQL 服务名为 `MySQL` 时使用 `${{MySQL.MYSQL_URL}}`）。服务启动时会创建表。使用需要 TLS 的数据库时，设置 `ORBIT_MYSQL_TLS=1` 以启用证书验证。
+
+星轨服务仍需将现有持久卷挂载为 `/data`，用于旧库迁移和 Android 安装包缓存。保留 `PORT=8080`、`ORBIT_DATA_DIR=/data`、`ORBIT_PUBLIC_ORIGIN` 和 `ORBIT_ENCRYPTION_KEY`。原有加密密钥用于解密已保存的 AI 密钥。新部署使用 32 字节随机值的 Base64 编码。
+
+### 从 Railway 上的 SQLite 切换
+
+1. 安排维护窗口，暂停旧版本写入，备份原持久卷和 `ORBIT_ENCRYPTION_KEY`。迁移时使用同一个持久卷，保留完整的 SQLite 数据库及存在的 WAL 文件。
+2. 将星轨连接到空 MySQL 数据库，设置 `ORBIT_MIGRATE_SQLITE=1`，再启动新版本。服务在对外接收请求前迁移账号、会话、工作区、附件、加密 AI 密钥和其他账号表。迁移和完成标记在同一个事务中提交，日志只输出各表行数。
+3. 检查启动日志，验证原账号登录、记录、附件和同步，再移除 `ORBIT_MIGRATE_SQLITE`。迁移标记会让重启跳过导入。切换后，新写入只进入 MySQL。旧 SQLite 备份仅能恢复到切换前的状态。
 
 ## 本机数据与可选 AI
 

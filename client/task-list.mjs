@@ -7,3 +7,22 @@ export function visibleTasks(notes,{query='',filter='all',today='',sort='due'}={
  });
 }
 export function dueLabel(note,today){return note.done||!note.due?'':note.due<today?'已逾期':note.due===today?'今天到期':'';}
+
+/** @template {{goalId?: string}} Task
+ * @param {Task[]} tasks
+ * @param {{id: string, title: string}[]} goals
+ */
+export function groupTasks(tasks,goals){
+ const byId=new Map(goals.map(goal=>[goal.id,goal]));
+ /** @type {Map<string,{goal:{id:string,title:string},items:Task[]}>} */
+ const groups=new Map();
+ const independent=[];
+ for(const task of tasks){
+  const goal=task.goalId&&byId.get(task.goalId);
+  if(!goal){independent.push(task);continue;}
+  let group=groups.get(goal.id);
+  if(!group){group={goal,items:[]};groups.set(goal.id,group);}
+  group.items.push(task);
+ }
+ return {groups:[...groups.values()],independent};
+}

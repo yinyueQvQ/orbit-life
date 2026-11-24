@@ -1,7 +1,7 @@
 .memo-space{display:grid;gap:16px;min-width:0}
 .memo-row,.memo-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .memo-row{justify-content:space-between}
-.memo-tabs{margin:0}
+.space-tabs.memo-tabs{display:flex;flex-wrap:wrap;margin:0}
 .v2-app .memo-tabs button[aria-pressed=true]{background:var(--v2-accent);color:#171627;border-color:transparent}
 .memo-filters{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:12px;margin:16px 0 0}
 .memo-filters :is(input,select){min-width:0;width:100%;box-sizing:border-box}

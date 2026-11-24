@@ -43,7 +43,7 @@ fs.mkdirSync(local,{recursive:true});
 let pass;if(fs.existsSync(passFile))pass=JSON.parse(fs.readFileSync(passFile,'utf8')).password;else{pass=crypto.randomBytes(32).toString('hex');fs.writeFileSync(passFile,JSON.stringify({password:pass}));}
 const env={...process.env,ORBIT_SIGN_PASS:pass};
 if(!fs.existsSync(keyStore))run(exe('keytool'),['-genkeypair','-keystore',keyStore,'-storetype','PKCS12','-storepass:env','ORBIT_SIGN_PASS','-keypass:env','ORBIT_SIGN_PASS','-alias','orbit','-keyalg','RSA','-keysize','3072','-validity','10000','-dname','CN=Orbit Life, O=Orbit, C=CN'],{env});
-const apk=path.join(release,sideBySide?'Orbit-Life-Android-Independent.apk':'Orbit-Life-Android.apk');
+const apk=process.env.ORBIT_ANDROID_OUTPUT?path.resolve(process.env.ORBIT_ANDROID_OUTPUT):path.join(release,sideBySide?'Orbit-Life-Android-Independent.apk':'Orbit-Life-Android.apk');
 run(exe('java'),['-jar',path.join(tools,'lib/apksigner.jar'),'sign','--ks',keyStore,'--ks-key-alias','orbit','--ks-pass','env:ORBIT_SIGN_PASS','--key-pass','env:ORBIT_SIGN_PASS','--out',apk,aligned],{env});
 run(exe('java'),['-jar',path.join(tools,'lib/apksigner.jar'),'verify','--verbose',apk]);
 assertAndroidAssets(fs.readFileSync(apk),requiredAssets);

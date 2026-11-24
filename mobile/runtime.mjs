@@ -1,4 +1,4 @@
-import {validateImage,imageReferences} from '../server/media.mjs';
+import {validateMedia,mediaReferences} from '../server/media.mjs';
 import {newState,validateBackup,normalizeState} from '../shared/domain.mjs';
 import {createWorkspace} from '../shared/workspace.mjs';
 export function installMobile(){
@@ -16,16 +16,16 @@ export function installMobile(){
   return normalizeState(JSON.parse(localStorage.getItem(storageKey)||JSON.stringify(newState())));
  }
  async function guestSave(s){
-  const previous=imageReferences(await guestLoad());
+  const previous=mediaReferences(await guestLoad());
   if(native.saveWorkspace){
    if(await native.saveWorkspace('guest',JSON.stringify(s))===false)throw Error('本机保存失败或数据量超出空间限制，请导出备份后再试。');
   }else localStorage.setItem(storageKey,JSON.stringify(s));
-  const used=new Set(imageReferences(s));
+  const used=new Set(mediaReferences(s));
   await Promise.all(previous.filter(id=>!used.has(id)).map(id=>native.deleteGuestImage?.(id)));
  }
  async function guestBackup(){
   const state=await guestLoad();
-  const images=await Promise.all(imageReferences(state).map(id=>native.loadGuestImage(id)));
+  const images=await Promise.all(mediaReferences(state).map(id=>native.loadGuestImage(id)));
   return {...state,_media:images.filter(Boolean).map(raw=>JSON.parse(raw))};
  }
  const workspace=createWorkspace({load:guestLoad,save:guestSave,configured:()=>native.configured(),complete:body=>bridge({type:'complete',body})});
@@ -44,7 +44,7 @@ export function installMobile(){
  if(url.pathname==='/api/auth/guest'){await native.clearSession?.();remoteMode=false;return response(200,{ok:true});}
  if(url.pathname==='/api/guest/state')return response(200,await guestLoad());
  if(url.pathname==='/api/guest/export')return response(200,await guestBackup());
- if(url.pathname.startsWith('/api/guest/media/')||(!remoteMode&&url.pathname.startsWith('/api/media'))){try{if(method==='POST'){const image=validateImage(body);if(!await native.saveGuestImage(JSON.stringify(image)))throw Error('图片保存失败');return response(200,{id:image.id,width:image.width,height:image.height});}const id=url.pathname.split('/').pop();if(method==='DELETE'){if(imageReferences(await guestLoad()).includes(id))return response(409,{error:'图片仍被使用'});await native.deleteGuestImage(id);return response(200,{ok:true});}const raw=await native.loadGuestImage(id);return raw?response(200,JSON.parse(raw)):response(404,{error:'本机图片不存在'});}catch(e){return response(400,{error:e.message})}}
+ if(url.pathname.startsWith('/api/guest/media/')||(!remoteMode&&url.pathname.startsWith('/api/media'))){try{if(method==='POST'){const image=validateMedia(body);if(!await native.saveGuestImage(JSON.stringify(image)))throw Error('图片保存失败');return response(200,{id:image.id,width:image.width,height:image.height});}const id=url.pathname.split('/').pop();if(method==='DELETE'){if(mediaReferences(await guestLoad()).includes(id))return response(409,{error:'图片仍被使用'});await native.deleteGuestImage(id);return response(200,{ok:true});}const raw=await native.loadGuestImage(id);return raw?response(200,JSON.parse(raw)):response(404,{error:'本机图片不存在'});}catch(e){return response(400,{error:e.message})}}
 
  if(url.pathname.startsWith('/api/auth/')||remoteMode){
  if(url.pathname==='/api/auth/me'&&!remoteMode)return response(200,{user:null});
@@ -67,7 +67,7 @@ export function installMobile(){
    if(JSON.stringify(state).length>2200000)throw Error('文字备份太大');
    await writeGuest(async()=>{
     for(const item of images){
-     const image=validateImage(item);
+     const image=validateMedia(item);
      if(!await native.saveGuestImage(JSON.stringify(image)))throw Error('图片恢复失败');
     }
     await guestSave(state);
