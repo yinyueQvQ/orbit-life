@@ -1,0 +1,14 @@
+﻿{
+  "name": "星历 ORBIT",
+  "short_name": "星历",
+  "description": "习惯、收支、随心记与备忘，写在同一本星历里。",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F2EDE1",
+  "theme_color": "#F2EDE1",
+  "lang": "zh-CN",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

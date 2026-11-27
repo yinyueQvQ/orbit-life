@@ -1,2 +1,50 @@
-'use client';import {useEffect,useState} from 'react';import {Sun,Sparkles} from 'lucide-react';
-export default function ThemeToggle(){const [theme,setTheme]=useState('cosmos');useEffect(()=>{const saved=localStorage.getItem('orbit.theme.v3')==='paper'?'paper':'cosmos';setTheme(saved);document.documentElement.dataset.theme=saved;(window as any).OrbitNative?.setAppearance?.(saved==='paper'?'paper':'night')},[]);function toggle(){const next=theme==='paper'?'cosmos':'paper';setTheme(next);localStorage.setItem('orbit.theme.v3',next);document.documentElement.dataset.theme=next;(window as any).OrbitNative?.setAppearance?.(next==='paper'?'paper':'night')}return <button className="v2-icon theme-toggle" aria-label={theme==='paper'?'切换星空模式':'切换纸感日间模式'} title={theme==='paper'?'星空模式':'纸感日间模式'} onClick={toggle}>{theme==='paper'?<Sparkles size={18}/>:<Sun size={18}/>}</button>}
+"use client";
+import { useEffect, useState } from "react";
+import { Sun, Moon } from "lucide-react";
+
+const KEY = "orbit.theme.almanac";
+
+function apply(theme: string) {
+  const next = theme === "night" ? "night" : "day";
+  document.documentElement.dataset.theme = next;
+  try {
+    localStorage.setItem(KEY, next);
+  } catch {
+    /* storage may be unavailable */
+  }
+  (window as any).OrbitNative?.setAppearance?.(
+    next === "day" ? "paper" : "night",
+  );
+}
+
+export default function ThemeToggle() {
+  const [theme, setTheme] = useState("day");
+
+  useEffect(() => {
+    let saved = "day";
+    try {
+      saved = localStorage.getItem(KEY) === "night" ? "night" : "day";
+    } catch {
+      saved = "day";
+    }
+    setTheme(saved);
+    apply(saved);
+  }, []);
+
+  function toggle() {
+    const next = theme === "day" ? "night" : "day";
+    setTheme(next);
+    apply(next);
+  }
+
+  return (
+    <button
+      className="alm-icon theme-toggle"
+      aria-label={theme === "day" ? "切换到夜观" : "切换到日光"}
+      title={theme === "day" ? "夜观" : "日光"}
+      onClick={toggle}
+    >
+      {theme === "day" ? <Moon size={16} /> : <Sun size={16} />}
+    </button>
+  );
+}
