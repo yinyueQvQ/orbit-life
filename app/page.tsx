@@ -28,6 +28,7 @@ import Planner from "../components/planner";
 import AccountPanel from "../components/account-panel";
 import { CalendarView, Insights, PetView } from "../components/life-views";
 import TodayView from "../components/today-view";
+import NightSky from "../components/night-sky";
 import { api, installClient, clearRevision } from "../client/api.mjs";
 import "./v2.css";
 import "./motion.css";
@@ -215,6 +216,7 @@ export default function Home() {
 
   return (
     <div className={"v2-app alm-app " + (hidden ? "motion-paused" : "")}>
+      <NightSky />
       <header className="alm-masthead">
         <button className="alm-brand" onClick={() => nav("today")}>
           <span className="alm-brand__mark" aria-hidden="true">

@@ -18,14 +18,14 @@ function apply(theme: string) {
 }
 
 export default function ThemeToggle() {
-  const [theme, setTheme] = useState("day");
+  const [theme, setTheme] = useState("night");
 
   useEffect(() => {
-    let saved = "day";
+    let saved = "night";
     try {
-      saved = localStorage.getItem(KEY) === "night" ? "night" : "day";
+      saved = localStorage.getItem(KEY) === "day" ? "day" : "night";
     } catch {
-      saved = "day";
+      saved = "night";
     }
     setTheme(saved);
     apply(saved);

@@ -1,5 +1,6 @@
 "use client";
 import { api } from "../client/api.mjs";
+import SkyPlate from "./sky-plate";
 
 const day = () =>
   new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Shanghai" }).format(
@@ -31,63 +32,6 @@ function streakOf(checks: any[]) {
     else if (i > 0) break;
   }
   return n;
-}
-
-function Plate() {
-  return (
-    <svg viewBox="0 0 280 280" aria-hidden="true">
-      <g className="alm-plate__orbit">
-        <circle cx="140" cy="140" r="132" className="alm-plate__dash" />
-        <circle cx="140" cy="140" r="124" className="alm-plate__faint" />
-        <line x1="140" y1="8" x2="140" y2="272" className="alm-plate__faint" />
-        <line x1="8" y1="140" x2="272" y2="140" className="alm-plate__faint" />
-      </g>
-      <circle cx="140" cy="140" r="104" className="alm-plate__faint" />
-      <ellipse
-        cx="140"
-        cy="140"
-        rx="118"
-        ry="44"
-        transform="rotate(-18 140 140)"
-        className="alm-plate__faint"
-      />
-      <g className="alm-plate__tick">
-        <line x1="140" y1="16" x2="140" y2="26" />
-        <line x1="140" y1="254" x2="140" y2="264" />
-        <line x1="16" y1="140" x2="26" y2="140" />
-        <line x1="254" y1="140" x2="264" y2="140" />
-        <line x1="66" y1="40" x2="73" y2="47" />
-        <line x1="207" y1="233" x2="214" y2="240" />
-        <line x1="214" y1="40" x2="207" y2="47" />
-        <line x1="73" y1="233" x2="66" y2="240" />
-      </g>
-      <circle cx="205" cy="82" r="6" className="alm-plate__sun" />
-      <path
-        d="M 62 116 a 15 15 0 1 0 14 22 a 12 12 0 1 1 -14 -22"
-        className="alm-plate__moon"
-      />
-      <g className="alm-plate__faint">
-        <circle cx="232" cy="192" r="1.5" fill="currentColor" />
-        <circle cx="246" cy="176" r="1.2" fill="currentColor" />
-        <circle cx="220" cy="168" r="1" fill="currentColor" />
-        <line x1="220" y1="168" x2="232" y2="192" />
-        <line x1="232" y1="192" x2="246" y2="176" />
-      </g>
-      <circle cx="86" cy="72" r="1.8" fill="currentColor" opacity=".6" />
-      <text x="140" y="17" textAnchor="middle" className="alm-plate__label">
-        N
-      </text>
-      <text x="140" y="268" textAnchor="middle" className="alm-plate__label">
-        S
-      </text>
-      <text x="14" y="144" textAnchor="middle" className="alm-plate__label">
-        W
-      </text>
-      <text x="266" y="144" textAnchor="middle" className="alm-plate__label">
-        E
-      </text>
-    </svg>
-  );
 }
 
 export default function TodayView({
@@ -199,7 +143,7 @@ export default function TodayView({
         </div>
 
         <figure className="alm-plate">
-          <Plate />
+          <SkyPlate onNav={onNav} />
           <figcaption>
             <span>N 22°</span>
             <i />

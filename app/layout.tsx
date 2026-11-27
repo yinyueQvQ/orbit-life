@@ -30,7 +30,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="zh-CN" data-theme="day">
+    <html lang="zh-CN" data-theme="night">
       <body>{children}</body>
     </html>
   );
