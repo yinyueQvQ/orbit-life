@@ -20,7 +20,7 @@ run(process.execPath,[path.join(root,'node_modules/vite/bin/vite.js'),'build','-
 fs.cpSync(path.join(root,'dist-local'),path.join(work,'assets/www'),{recursive:true});
 run(path.join(tools,'aapt2.exe'),['compile','--dir',path.join(root,'android/res'),'-o',path.join(work,'compiled.zip')]);
 const unsigned=path.join(work,'unsigned.apk');
-run(path.join(tools,'aapt2.exe'),['link','-o',unsigned,'-I',platform,'--manifest',path.join(root,'android/AndroidManifest.xml'),'--java',path.join(work,'generated'),'-A',path.join(work,'assets'),'--min-sdk-version','26','--target-sdk-version','35',path.join(work,'compiled.zip')]);
+run(path.join(tools,'aapt2.exe'),['link','-o',unsigned,'-I',platform,'--manifest',path.join(root,'android/AndroidManifest.xml'),'--rename-manifest-package','com.orbit.life.next','--java',path.join(work,'generated'),'-A',path.join(work,'assets'),'--min-sdk-version','26','--target-sdk-version','35',path.join(work,'compiled.zip')]);
 // AAPT2 on Windows can emit backslash asset paths, unreadable by Android AssetManager.
 fs.writeFileSync(unsigned,normalizeZipPaths(fs.readFileSync(unsigned)));
 const html=fs.readFileSync(path.join(root,'dist-local/local.html'),'utf8');
