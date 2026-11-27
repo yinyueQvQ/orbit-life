@@ -1947,8 +1947,14 @@ body::after {
     font-size: 22px;
   }
   .alm-plate {
-    display: none;
+    display: flex;
+    grid-column: 1 / -1;
+    width: 100%;
+    border-top: 1px solid var(--alm-rule);
+    padding: 6px 0 0;
   }
+  .alm-plate svg { max-width: 240px; }
+  .sky-plate::before { inset: 0 12% 8%; }
   .alm-page-heading h1 {
     font-size: 28px;
   }
@@ -2493,3 +2499,8 @@ body::after {
 :root[data-theme="day"] .sky-node:hover .sky-node__label { fill: var(--alm-ink); }
 :root[data-theme="day"] .sky-plate__minor { fill: rgba(30, 36, 43, .36); }
 :root[data-theme="day"] .sky-plate figcaption { color: var(--alm-ink-3); }
+
+
+@media (max-width: 720px) {
+  .sky-plate svg { max-width: 230px !important; }
+}
